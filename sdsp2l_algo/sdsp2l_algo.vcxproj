@@ -164,7 +164,6 @@
     <ClInclude Include="interface.h" />
     <ClInclude Include="p2l.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="WinFunc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data.c" />
@@ -177,7 +176,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="WinFunc.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

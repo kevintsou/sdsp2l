@@ -3,8 +3,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern int writePageData(int lba, int *pPayload);
-extern int readPageData(int lba, int *pPayload);
+
+
+
+extern int iWritePageData(int lba, int *pPayload);
+extern int iReadPageData(int lba, int *pPayload);
+extern int* pDataPayload;	                
 
 #ifdef __cplusplus
 }

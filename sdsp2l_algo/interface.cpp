@@ -5,8 +5,13 @@
 #include <stdlib.h>
 
 #include "interface.h"
+#include "p2l.h"
+#include "data.h"
 
+long lp2lHitCnt() {
+	return p2l_hit_cnt;
+}
 
-unsigned char outBuffer[1024 * 512];
-unsigned char inBuffer[1024 * 512];
-
+long lpl2ChkCnt() {
+	return p2l_chk_cnt;
+}
