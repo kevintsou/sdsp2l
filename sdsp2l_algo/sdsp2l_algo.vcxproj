@@ -159,69 +159,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="data.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="GPIO.h" />
     <ClInclude Include="interface.h" />
-    <ClInclude Include="Ioctl.h" />
-    <ClInclude Include="NVMeCommandSupportedAndEffects.h" />
-    <ClInclude Include="NVMeDeallocate.h" />
-    <ClInclude Include="NVMeDeviceSelftest.h" />
-    <ClInclude Include="NVMeDeviceSelftestLog.h" />
-    <ClInclude Include="NVMeErrorInformation.h" />
-    <ClInclude Include="NVMeFeaturesAPST.h" />
-    <ClInclude Include="NVMeFeaturesHCTM.h" />
-    <ClInclude Include="NVMeFeaturesHMB.h" />
-    <ClInclude Include="NVMeFeaturesLBARange.h" />
-    <ClInclude Include="NVMeFeaturesTimestamp.h" />
-    <ClInclude Include="NVMeFeaturesVWC.h" />
-    <ClInclude Include="NVMeFormatNVM.h" />
-    <ClInclude Include="NVMeFwSlotInformation.h" />
-    <ClInclude Include="NVMeGetFeatures.h" />
-    <ClInclude Include="NVMeGetLogPage.h" />
-    <ClInclude Include="NVMeGetTelemetry.h" />
-    <ClInclude Include="NVMeIdentify.h" />
-    <ClInclude Include="NVMeIdentifyActiveNSIDList.h" />
-    <ClInclude Include="NVMeIdentifyController.h" />
-    <ClInclude Include="NVMeIdentifyControllerData.h" />
-    <ClInclude Include="NVMeIdentifyNamespace.h" />
-    <ClInclude Include="NVMeIdentifyNSIDDescriptor.h" />
-    <ClInclude Include="NVMeSCSIPassThrough.h" />
-    <ClInclude Include="NVMeSetFeatures.h" />
-    <ClInclude Include="NVMeSMART.h" />
-    <ClInclude Include="NVMeUtils.h" />
+    <ClInclude Include="p2l.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="WinFunc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="data.c" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="GPIO.cpp" />
     <ClCompile Include="interface.cpp" />
-    <ClCompile Include="NVMeCommandSupportedAndEffects.c" />
-    <ClCompile Include="NVMeDeallocate.c" />
-    <ClCompile Include="NVMeDeviceSelftest.c" />
-    <ClCompile Include="NVMeDeviceSelftestLog.c" />
-    <ClCompile Include="NVMeErrorInformation.c" />
-    <ClCompile Include="NVMeFeaturesAPST.c" />
-    <ClCompile Include="NVMeFeaturesHCTM.c" />
-    <ClCompile Include="NVMeFeaturesHMB.c" />
-    <ClCompile Include="NVMeFeaturesLBARange.c" />
-    <ClCompile Include="NVMeFeaturesTimestamp.c" />
-    <ClCompile Include="NVMeFeaturesVWC.c" />
-    <ClCompile Include="NVMeFormatNVM.c" />
-    <ClCompile Include="NVMeFwSlotInformation.c" />
-    <ClCompile Include="NVMeGetFeatures.c" />
-    <ClCompile Include="NVMeGetLogPage.c" />
-    <ClCompile Include="NVMeGetTelemetry.c" />
-    <ClCompile Include="NVMeIdentify.c" />
-    <ClCompile Include="NVMeIdentifyActiveNSIDList.c" />
-    <ClCompile Include="NVMeIdentifyController.c" />
-    <ClCompile Include="NVMeIdentifyControllerData.c" />
-    <ClCompile Include="NVMeIdentifyNamespace.c" />
-    <ClCompile Include="NVMeIdentifyNSIDDescriptor.c" />
-    <ClCompile Include="NVMeSCSIPassThrough.c" />
-    <ClCompile Include="NVMeSetFeatures.c" />
-    <ClCompile Include="NVMeSMART.c" />
-    <ClCompile Include="NVMeUtils.c" />
+    <ClCompile Include="p2l.c" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -21,94 +21,16 @@
     <ClInclude Include="pch.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="NVMeCommandSupportedAndEffects.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeDeallocate.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeDeviceSelftest.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="WinFunc.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentifyController.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeUtils.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeDeviceSelftestLog.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeErrorInformation.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesAPST.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesHCTM.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesHMB.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesLBARange.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesTimestamp.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFeaturesVWC.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFormatNVM.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeFwSlotInformation.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeGetFeatures.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeGetLogPage.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeGetTelemetry.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentify.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentifyActiveNSIDList.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentifyControllerData.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentifyNamespace.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeIdentifyNSIDDescriptor.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeSCSIPassThrough.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeSetFeatures.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="NVMeSMART.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="interface.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="GPIO.h">
+    <ClInclude Include="data.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="Ioctl.h">
+    <ClInclude Include="p2l.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
@@ -119,92 +41,17 @@
     <ClCompile Include="pch.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="NVMeCommandSupportedAndEffects.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeDeallocate.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeDeviceSelftest.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
     <ClCompile Include="WinFunc.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentifyController.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeUtils.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeDeviceSelftestLog.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeErrorInformation.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesAPST.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesHCTM.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesHMB.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesLBARange.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesTimestamp.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFeaturesVWC.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFormatNVM.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeFwSlotInformation.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeGetFeatures.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeGetLogPage.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeGetTelemetry.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentify.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentifyActiveNSIDList.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentifyControllerData.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentifyNamespace.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeIdentifyNSIDDescriptor.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeSCSIPassThrough.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeSetFeatures.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="NVMeSMART.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
     <ClCompile Include="interface.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="GPIO.cpp">
-      <Filter>來源檔案</Filter>
+    <ClCompile Include="data.c">
+      <Filter>標頭檔</Filter>
+    </ClCompile>
+    <ClCompile Include="p2l.c">
+      <Filter>標頭檔</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
