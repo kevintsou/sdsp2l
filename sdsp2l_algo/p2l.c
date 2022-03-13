@@ -184,7 +184,7 @@ int iRecycleBlkLbn(int pAddr) {
     // clear lbn in p2l table for each page
     // use dma instead in future
     for (int i = 0; i < (dev_mgr.pageCnt * dev_mgr.planeCnt); i++) {
-        iUpdateDataLbn(pAddr, 0x0);
+        iUpdateDataLbn(pAddr+i, 0x0);
     }
     return 0;
 }
@@ -295,6 +295,7 @@ int iFlashCmdHandler(int cmd, int pAddr, int *pPayload){
         break;
 
     case D_CMD_ERASE:
+        iRecycleBlkLbn(pAddr);
         break;
     default:
         break;

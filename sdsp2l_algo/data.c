@@ -5,7 +5,7 @@ int* pDataPayload;	                // payload buffer
 
 // write 16384+2208=18592 bytes to storage
 int iWritePageData(int lbn, int *pPayload) {
-
+	pDataPayload[lbn] = *pPayload;
 	return 0;
 }
 
