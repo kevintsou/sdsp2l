@@ -8,32 +8,52 @@
 
 int* pP2lBitmap;                    // P2L Bitmap
 int* pP2lTable[D_MAX_CH_CNT];       // P2L Table 
-int* pP2lPageLbn[D_MAX_CH_CNT];     // P2L Page LBN
+int* pP2lPageIdx[D_MAX_CH_CNT];     // P2L Page Idx on the src table
 int* pP2lSrcTable;                  // P2L Table on device
 
 // device configuration
-int ch_cnt;
-int blk_cnt;
-int page_cnt;
-int plane_cnt;
+struct s_dev_mgr {
+    int chCnt;
+    int blkCnt;
+    int pageCnt;
+    int planeCnt;
 
-int ch_bit_num;
-int blk_bit_num;
-int page_bit_num;
-int plane_bit_num;
+    int chBitNum;
+    int blkBitNum;
+    int pageBitNum;
+    int planeBitNum;
+
+    int chSftCnt;
+    int blkSftCnt;
+    int pageSftCnt;
+    int planeSftCnt;
+}dev_mgr;
+
 
 int ch_sft_cnt;
 int blk_sft_cnt;
 int page_sft_cnt;
 int plane_sft_cnt;
 
-int lbn_cnt;
-int rest_lbn_cnt;
-
 long p2l_hit_cnt;
 long p2l_chk_cnt;
 int p2l_bank_size;      // entry in a bank
 int p2l_page_size;      // entry in a page
+
+// LBN manager
+struct s_lbn_mgr {
+    int lbnEntryCnt;    // max entries in this lbn buffer
+    // lbn buffer header
+    int headPtr;
+    int tailPtr;
+    int lbnBufCnt;          // ibn buf entry cnt
+    int availLbnCnt;        // available lbn cnt
+    int *pLbnBuff;          // lbn buffer
+
+    // lbn info current use
+    int chStartLbn[D_MAX_CH_CNT];   // ch lbn queue for queue current lbn start value    
+    int chAllocLbn[D_MAX_CH_CNT];   // current allocated lbn for the write cmd for each channel
+}lbn_mgr;
 
 
 enum {
@@ -45,10 +65,10 @@ enum {
 // get flash info
 // pAddr : CH/CE/BLK/PLANE/PAGE
 // lAddr : CH/CE/BLK/PAGE1/PLANE/PAGE0, PAGE0:1024 entry, 10bits
-#define D_GET_CH_ADDR(x)        ((x >> ch_sft_cnt) & (ch_bit_num - 1))
-#define D_GET_BLOCK_ADDR(x)     ((x >> blk_sft_cnt) & (blk_bit_num - 1))
-#define D_GET_PLANE_ADDR(x)     ((x >> plane_sft_cnt) & (plane_bit_num - 1))
-#define D_GET_PAGE_ADDR(x)      ((x >> page_sft_cnt) & (page_bit_num - 1))
+#define D_GET_CH_ADDR(x)        ((x >> dev_mgr.chSftCnt) & (dev_mgr.chBitNum - 1))
+#define D_GET_BLOCK_ADDR(x)     ((x >> dev_mgr.blkSftCnt) & (dev_mgr.blkBitNum - 1))
+#define D_GET_PLANE_ADDR(x)     ((x >> dev_mgr.planeSftCnt) & (dev_mgr.planeBitNum - 1))
+#define D_GET_PAGE_ADDR(x)      ((x >> dev_mgr.pageSftCnt) & (dev_mgr.pageBitNum - 1))
 
 #define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[x / 32] & (1 << (x % 32)))
 
@@ -100,7 +120,7 @@ int iGetDataLbn(int pAddr){
 */
 int iSwapP2lPage(int pAddr){
     int ch = D_GET_CH_ADDR(pAddr);
-    int lbn = 0;
+    int idx = 0;
     int addr = 0;
     int pageOff = 0;
     int *pSrc, *pDes;
@@ -109,23 +129,28 @@ int iSwapP2lPage(int pAddr){
     addr = pAddr & (~(ch << ch_sft_cnt));
     pageOff = (addr % p2l_bank_size) / 1024;
 
-    lbn = pP2lPageLbn[ch][pageOff];
+    idx = pP2lPageIdx[ch][pageOff];
     pSrc = &pP2lTable[ch][pageOff * 1024];
-    pDes = &pP2lSrcTable[lbn * 4096];
+    pDes = &pP2lSrcTable[idx * 4096];
 
     memcpy(pDes, pSrc, 4096);
 
+    // clear p2l bitmap table
+    for (int i = 0; i < (1024 / 32); i++) {
+        pP2lBitmap[i + (idx / 8)] = 0x0;
+    }
+
     // read the new p2l set from the src table to dram
-    lbn = pAddr / 1024;
-    pP2lPageLbn[ch][pageOff] = lbn;
-    pSrc = &pP2lSrcTable[lbn * 4096];
+    idx = pAddr / 1024;
+    pP2lPageIdx[ch][pageOff] = idx;
+    pSrc = &pP2lSrcTable[idx * 4096];
     pDes = &pP2lTable[ch][pageOff * 1024];
 
     memcpy(pDes, pSrc, 4096);
 
     // set p2l bitmap table
-    for (int idx = 0; idx < (1024/32); idx ++) {
-        pP2lBitmap[idx + pAddr/] = 0xFFFFFFFF;
+    for (int i = 0; i < (1024/32); i ++) {
+        pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
     }
 
     return 0;
@@ -135,7 +160,17 @@ int iSwapP2lPage(int pAddr){
 /*
     Allocate new lbn for write
 */
-int iAllocLBN(int pAddr) {
+int iAllocLbn(int pAddr) {
+    int ch = D_GET_CH_ADDR(pAddr);
+    int lbn = 0;
+
+}
+
+
+/*
+    Recycle lbn
+*/
+int iRecycleLbn(int pAddr) {
 
 
 }
@@ -149,22 +184,33 @@ int iAllocLBN(int pAddr) {
     ddr_size : ddr size in MB
 */
 int iInitDevConfig(int devCap, int ddrSize) {
-    ch_cnt = 8;
-    page_cnt = 1024;    // TBD
-    plane_cnt = 4;      // TBD
-    blk_cnt = (devCap * 1024 * 1024) / (16 * page_cnt * plane_cnt * ch_cnt);
+    dev_mgr.chCnt = 8;
+    dev_mgr.pageCnt = 1024;
+    dev_mgr.planeCnt = 4;
+    dev_mgr.blkCnt = (devCap * 1024 * 1024) / (16 * dev_mgr.pageCnt * dev_mgr.planeCnt * dev_mgr.chCnt);
 
-    ch_bit_num = (int)log2(ch_cnt);
-    blk_bit_num = (int)log2(blk_cnt);
-    page_bit_num = (int)log2(page_cnt);
-    plane_bit_num = (int)log2(plane_cnt);
+    dev_mgr.chBitNum = (int)log2(dev_mgr.chCnt);
+    dev_mgr.blkBitNum = (int)log2(dev_mgr.blkCnt);
+    dev_mgr.pageBitNum = (int)log2(dev_mgr.pageCnt);
+    dev_mgr.planeBitNum = (int)log2(dev_mgr.planeCnt);
 
-    page_sft_cnt = 0;
-    plane_sft_cnt = page_sft_cnt + page_bit_num;
-    blk_sft_cnt = plane_sft_cnt + plane_bit_num;
-    ch_sft_cnt = blk_sft_cnt + blk_bit_num;
+    dev_mgr.pageSftCnt = 0;
+    dev_mgr.planeSftCnt = dev_mgr.pageSftCnt + dev_mgr.pageBitNum;
+    dev_mgr.blkSftCnt = dev_mgr.planeSftCnt + dev_mgr.planeBitNum;
+    dev_mgr.chSftCnt = dev_mgr.blkSftCnt + dev_mgr.blkBitNum;
 
-    rest_lbn_cnt = lbn_cnt = (devCap * 1024 * 1024) / 4;   // total device lbn count
+    // initialize lbn manager relative parameters
+    lbn_mgr.lbnEntryCnt = (devCap * 1024 / 4);
+    lbn_mgr.lbnBufCnt = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;
+    lbn_mgr.pLbnBuff = (int*)malloc(lbn_mgr.lbnBufCnt * 4);
+    lbn_mgr.headPtr = 0;
+    lbn_mgr.tailPtr = 0;
+
+    for (int i = 0; i < lbn_mgr.lbnBufCnt; i++) {
+        lbn_mgr.pLbnBuff[i] = lbn_mgr.lbnEntryCnt + (i * dev_mgr.pageCnt * dev_mgr.planeCnt);
+        lbn_mgr.tailPtr = lbn_mgr.tailPtr + 1;
+        lbn_mgr.availLbnCnt++;
+    }
 
     // allocate p2l ddr table 
     int bitMapSize = ((devCap * 1024 * 1024) / 16) / 8;
@@ -172,16 +218,15 @@ int iInitDevConfig(int devCap, int ddrSize) {
     int p2lEntryCnt = ((devCap * 1024 * 1024) / 16);
 
     p2l_page_size = 1024;
-    p2l_bank_size = (ddrSize * 1024 * 1024) / (ch_cnt * sizeof(int));
-    rest_lbn_cnt = rest_lbn_cnt - (p2l_bank_size / 1024);   // minus p2l table size
+    p2l_bank_size = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
 
     // allocate p2l bitmap memory
     pP2lBitmap = (int *)malloc(bitMapSize);
 
     // allocate p2l table memory
-    for (int idx = 0; idx < ch_cnt; idx++) {
+    for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
         pP2lTable[idx] = (int *)malloc(sizeof(int) * p2l_bank_size);
-        pP2lPageLbn[idx] = (int*)malloc(p2l_bank_size / 4096);
+        pP2lPageIdx[idx] = (int*)malloc(p2l_bank_size / 4096);
     }
     
     pP2lSrcTable = (int*)malloc(sizeof(int) * p2lEntryCnt);
