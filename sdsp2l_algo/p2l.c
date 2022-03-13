@@ -66,12 +66,31 @@ int iGetDataLbn(int pAddr){
     }
     else{   // p2l page miss
         if(iSwapP2lPage(pAddr) == 1){
-           // printf("Swap p2l fail, assert\n");
             while(1);
+        }
+        else {
+            lbn = iGetLbnInfo(pAddr);
         }
     }
 
     return lbn;
+}
+
+
+/*
+    update lbn of pAddr
+*/
+int iUpdateDataLbn(int pAddr, int lbn) {
+    int ch = D_GET_CH_ADDR(pAddr);
+
+    pAddr = pAddr & (~(ch << dev_mgr.chSftCnt));
+
+    if (!D_CHK_P2L_BITMAP(pAddr)) {   
+        if (iSwapP2lPage(pAddr) == 1) {
+            while (1);
+        }
+    }
+    pP2lTable[ch][pAddr % p2l_mgr.bankSize] = lbn;
 }
 
 
@@ -118,9 +137,9 @@ int iSwapP2lPage(int pAddr){
 
 
 /*
-    Allocate new lbn for write
+    Allocate new block lbn
 */
-int iAllocLbn(int pAddr) {
+int iAllocBlkLbn(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     int blk = D_GET_BLOCK_ADDR(pAddr);
     int page = D_GET_PAGE_ADDR(pAddr);
@@ -134,7 +153,7 @@ int iAllocLbn(int pAddr) {
     if (lbn_mgr.availLbnCnt) {
         lbn = lbn_mgr.pLbnBuff[lbn_mgr.headPtr];
         lbn_mgr.chStartLbn[ch] = lbn;
-        lbn_mgr.chAllocLbn[ch] = lbn;
+        lbn_mgr.chAllocLbn[ch] = lbn + 1;   // already allocated to a page, point to next 1
         lbn_mgr.pBlk2Lbn[blk] = lbn;
 
         lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnBufCnt;
@@ -144,14 +163,14 @@ int iAllocLbn(int pAddr) {
         while (1);
     }
 
-    return 0;
+    return lbn;
 }
 
 
 /*
     Recycle lbn
 */
-int iRecycleLbn(int pAddr) {
+int iRecycleBlkLbn(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     int blk = D_GET_BLOCK_ADDR(pAddr);
 
@@ -162,7 +181,26 @@ int iRecycleLbn(int pAddr) {
     lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnBufCnt;
     lbn_mgr.availLbnCnt++;
     
+    // clear lbn in p2l table for each page
+    // use dma instead in future
+    for (int i = 0; i < (dev_mgr.pageCnt * dev_mgr.planeCnt); i++) {
+        iUpdateDataLbn(pAddr, 0x0);
+    }
     return 0;
+}
+
+
+/*
+    Allocate new lbn for write
+*/
+int iAllocPageLbn(int pAddr) {
+    int ch = D_GET_CH_ADDR(pAddr);
+    int blk = D_GET_BLOCK_ADDR(pAddr);
+    int lbn = 0;
+
+    lbn = lbn_mgr.chAllocLbn[ch];
+    lbn_mgr.chAllocLbn[ch]++;
+    return lbn;
 }
 
 
@@ -224,20 +262,31 @@ int iInitDevConfig(int devCap, int ddrSize) {
 
     // allocate data payload buffer
     pDataPayload = (int*)malloc(payloadSize);
-
-
-
     return 0;
 }
 
 
 int iFlashCmdHandler(int cmd, int pAddr, int *pPayload){
     int lbn = 0;
+    int page = D_GET_PAGE_ADDR(pAddr);
+    int plane = D_GET_PLANE_ADDR(pAddr);
 
     switch (cmd)
     {
     case D_CMD_WRITE:
         lbn = iGetDataLbn(pAddr);
+        if (!lbn) {
+            // new block
+            if ( (page == 0) && (plane == 0)) {
+                lbn = iAllocBlkLbn(pAddr); // get a block start lbn
+            }
+            else {
+                // allocate a page lbn
+                lbn = iAllocPageLbn(pAddr);
+            }
+        }
+        iWritePageData(lbn, pPayload);
+        iUpdateDataLbn(pAddr, lbn);
         break;
 
     case D_CMD_READ:
