@@ -6,55 +6,15 @@
 #include "p2l.h"
 #include "data.h"
 
+// for p2l.c internal use, don't export
 int* pP2lBitmap;                    // P2L Bitmap
 int* pP2lTable[D_MAX_CH_CNT];       // P2L Table 
 int* pP2lPageIdx[D_MAX_CH_CNT];     // P2L Page Idx on the src table
 int* pP2lSrcTable;                  // P2L Table on device
 
-// device configuration
-struct s_dev_mgr {
-    int chCnt;
-    int blkCnt;
-    int pageCnt;
-    int planeCnt;
-
-    int chBitNum;
-    int blkBitNum;
-    int pageBitNum;
-    int planeBitNum;
-
-    int chSftCnt;
-    int blkSftCnt;
-    int pageSftCnt;
-    int planeSftCnt;
-}dev_mgr;
-
-
-int ch_sft_cnt;
-int blk_sft_cnt;
-int page_sft_cnt;
-int plane_sft_cnt;
-
-long p2l_hit_cnt;
-long p2l_chk_cnt;
-int p2l_bank_size;      // entry in a bank
-int p2l_page_size;      // entry in a page
-
-// LBN manager
-struct s_lbn_mgr {
-    int lbnEntryCnt;    // max entries in this lbn buffer
-    // lbn buffer header
-    int headPtr;
-    int tailPtr;
-    int lbnBufCnt;          // ibn buf entry cnt
-    int availLbnCnt;        // available lbn cnt
-    int *pLbnBuff;          // lbn buffer
-
-    // lbn info current use
-    int chStartLbn[D_MAX_CH_CNT];   // ch lbn queue for queue current lbn start value    
-    int chAllocLbn[D_MAX_CH_CNT];   // current allocated lbn for the write cmd for each channel
-}lbn_mgr;
-
+t_dev_mgr dev_mgr;
+t_p2l_mgr p2l_mgr;
+t_lbn_mgr lbn_mgr;
 
 enum {
     D_CMD_READ = 0,
@@ -82,9 +42,9 @@ enum {
 int iGetLbnInfo(int pAddr){
     int ch = D_GET_CH_ADDR(pAddr);
     
-    pAddr = pAddr & (~(ch << ch_sft_cnt));
+    pAddr = pAddr & (~(ch << dev_mgr.chSftCnt));
 
-    return pP2lTable[ch][pAddr % p2l_bank_size];
+    return pP2lTable[ch][pAddr % p2l_mgr.bankSize];
 }
 
 
@@ -97,12 +57,12 @@ int iGetLbnInfo(int pAddr){
 int iGetDataLbn(int pAddr){
     int lbn = 0;
 
-    p2l_chk_cnt++;
+    p2l_mgr.chkCnt++;
 
     if(D_CHK_P2L_BITMAP(pAddr)){   // p2l page hit
         // get the lba from p2l
         lbn =  iGetLbnInfo(pAddr);
-        p2l_hit_cnt++;
+        p2l_mgr.hitCnt++;
     }
     else{   // p2l page miss
         if(iSwapP2lPage(pAddr) == 1){
@@ -126,8 +86,8 @@ int iSwapP2lPage(int pAddr){
     int *pSrc, *pDes;
 
     // store the p2l set to p2l src table
-    addr = pAddr & (~(ch << ch_sft_cnt));
-    pageOff = (addr % p2l_bank_size) / 1024;
+    addr = pAddr & (~(ch << dev_mgr.chSftCnt));
+    pageOff = (addr % p2l_mgr.bankSize) / 1024;
 
     idx = pP2lPageIdx[ch][pageOff];
     pSrc = &pP2lTable[ch][pageOff * 1024];
@@ -162,8 +122,29 @@ int iSwapP2lPage(int pAddr){
 */
 int iAllocLbn(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
+    int blk = D_GET_BLOCK_ADDR(pAddr);
+    int page = D_GET_PAGE_ADDR(pAddr);
     int lbn = 0;
 
+    // error chck
+    if (page) {
+        while (1);
+    }
+
+    if (lbn_mgr.availLbnCnt) {
+        lbn = lbn_mgr.pLbnBuff[lbn_mgr.headPtr];
+        lbn_mgr.chStartLbn[ch] = lbn;
+        lbn_mgr.chAllocLbn[ch] = lbn;
+        lbn_mgr.pBlk2Lbn[blk] = lbn;
+
+        lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnBufCnt;
+        lbn_mgr.availLbnCnt--;
+    }
+    else {
+        while (1);
+    }
+
+    return 0;
 }
 
 
@@ -171,8 +152,17 @@ int iAllocLbn(int pAddr) {
     Recycle lbn
 */
 int iRecycleLbn(int pAddr) {
+    int ch = D_GET_CH_ADDR(pAddr);
+    int blk = D_GET_BLOCK_ADDR(pAddr);
 
+    lbn_mgr.pLbnBuff[lbn_mgr.tailPtr] = lbn_mgr.pBlk2Lbn[blk];
 
+    lbn_mgr.chStartLbn[ch] = 0;
+    lbn_mgr.chAllocLbn[ch] = 0;
+    lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnBufCnt;
+    lbn_mgr.availLbnCnt++;
+    
+    return 0;
 }
 
 
@@ -217,16 +207,17 @@ int iInitDevConfig(int devCap, int ddrSize) {
     int payloadSize = sizeof(int) * ((devCap * 1024 * 1024) / 16);
     int p2lEntryCnt = ((devCap * 1024 * 1024) / 16);
 
-    p2l_page_size = 1024;
-    p2l_bank_size = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
+    p2l_mgr.hitCnt = p2l_mgr.chkCnt = 0;
+    p2l_mgr.pageSize = 1024;
+    p2l_mgr.bankSize = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
 
     // allocate p2l bitmap memory
     pP2lBitmap = (int *)malloc(bitMapSize);
 
     // allocate p2l table memory
     for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
-        pP2lTable[idx] = (int *)malloc(sizeof(int) * p2l_bank_size);
-        pP2lPageIdx[idx] = (int*)malloc(p2l_bank_size / 4096);
+        pP2lTable[idx] = (int *)malloc(sizeof(int) * p2l_mgr.bankSize);
+        pP2lPageIdx[idx] = (int*)malloc(p2l_mgr.bankSize / 4096);
     }
     
     pP2lSrcTable = (int*)malloc(sizeof(int) * p2lEntryCnt);
@@ -234,7 +225,7 @@ int iInitDevConfig(int devCap, int ddrSize) {
     // allocate data payload buffer
     pDataPayload = (int*)malloc(payloadSize);
 
-    p2l_hit_cnt = p2l_chk_cnt = 0;
+
 
     return 0;
 }

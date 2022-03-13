@@ -9,9 +9,9 @@
 #include "data.h"
 
 long lp2lHitCnt() {
-	return p2l_hit_cnt;
+	return p2l_mgr.hitCnt;
 }
 
 long lpl2ChkCnt() {
-	return p2l_chk_cnt;
+	return p2l_mgr.chkCnt;
 }
