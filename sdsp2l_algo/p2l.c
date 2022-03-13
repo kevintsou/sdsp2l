@@ -29,7 +29,6 @@ enum {
 #define D_GET_BLOCK_ADDR(x)     ((x >> dev_mgr.blkSftCnt) & (dev_mgr.blkBitNum - 1))
 #define D_GET_PLANE_ADDR(x)     ((x >> dev_mgr.planeSftCnt) & (dev_mgr.planeBitNum - 1))
 #define D_GET_PAGE_ADDR(x)      ((x >> dev_mgr.pageSftCnt) & (dev_mgr.pageBitNum - 1))
-
 #define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[x / 32] & (1 << (x % 32)))
 
 
@@ -265,7 +264,9 @@ int iInitDevConfig(int devCap, int ddrSize) {
     return 0;
 }
 
-
+/*
+    Handle flash command here
+*/
 int iFlashCmdHandler(int cmd, int pAddr, int *pPayload){
     int lbn = 0;
     int page = D_GET_PAGE_ADDR(pAddr);

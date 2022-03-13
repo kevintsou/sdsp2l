@@ -53,6 +53,8 @@ extern "C" {
 	extern t_dev_mgr dev_mgr;
 
 	extern int iSwapP2lPage(int pAddr);
+	extern int iInitDevConfig(int devCap, int ddrSize);
+	extern int iFlashCmdHandler(int cmd, int pAddr, int* pPayload);
 
 #ifdef __cplusplus
 }

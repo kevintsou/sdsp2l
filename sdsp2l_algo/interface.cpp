@@ -15,3 +15,11 @@ long lp2lHitCnt() {
 long lpl2ChkCnt() {
 	return p2l_mgr.chkCnt;
 }
+
+int iIssueFlashCmd(int cmd, int pAddr, int* pPayload) {
+	return iFlashCmdHandler(cmd, pAddr, pPayload);
+}
+
+int iInitDeviceConfig(int dev_size, int ddr_size) {
+	return iInitDevConfig(dev_size, ddr_size);
+}
