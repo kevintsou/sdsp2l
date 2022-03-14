@@ -16,8 +16,11 @@ extern "C" {
 	
 	// device configuration
 	typedef struct s_dev_mgr {
+		int dev_cap;
+		int ddr_size;
+		
 		int chCnt;
-		int blkCnt;
+		int blkCnt;	// die block count
 		int pageCnt;
 		int planeCnt;
 
@@ -38,7 +41,7 @@ extern "C" {
 		// lbn buffer header
 		int headPtr;
 		int tailPtr;
-		int lbnBufCnt;          // ibn buf entry cnt
+		int lbnEntryPerBlk;          // ibn buf entry cnt
 		int availLbnCnt;        // available lbn cnt
 		int* pLbnBuff;          // lbn buffer
 		int* pBlk2Lbn;          // block to lbn lookup table

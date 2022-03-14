@@ -17,9 +17,9 @@ t_p2l_mgr p2l_mgr;
 t_lbn_mgr lbn_mgr;
 
 enum {
-    D_CMD_READ = 0,
-    D_CMD_WRITE,
-    D_CMD_ERASE
+    E_CMD_READ = 0,
+    E_CMD_WRITE,
+    E_CMD_ERASE
 };
 
 // get flash info
@@ -155,7 +155,7 @@ int iAllocBlkLbn(int pAddr) {
         lbn_mgr.chAllocLbn[ch] = lbn + 1;   // already allocated to a page, point to next 1
         lbn_mgr.pBlk2Lbn[blk] = lbn;
 
-        lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnBufCnt;
+        lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % dev_mgr.blkCnt;
         lbn_mgr.availLbnCnt--;
     }
     else {
@@ -177,7 +177,7 @@ int iRecycleBlkLbn(int pAddr) {
 
     lbn_mgr.chStartLbn[ch] = 0;
     lbn_mgr.chAllocLbn[ch] = 0;
-    lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnBufCnt;
+    lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
     lbn_mgr.availLbnCnt++;
     
     // clear lbn in p2l table for each page
@@ -211,10 +211,13 @@ int iAllocPageLbn(int pAddr) {
     ddr_size : ddr size in MB
 */
 int iInitDevConfig(int devCap, int ddrSize) {
+    dev_mgr.dev_cap = devCap;
+    dev_mgr.ddr_size = ddrSize;
+
     dev_mgr.chCnt = 8;
     dev_mgr.pageCnt = 1024;
     dev_mgr.planeCnt = 4;
-    dev_mgr.blkCnt = (devCap * 1024 * 1024) / (16 * dev_mgr.pageCnt * dev_mgr.planeCnt * dev_mgr.chCnt);
+    dev_mgr.blkCnt = (devCap * 1024 * 1024) / (16 * dev_mgr.pageCnt * dev_mgr.planeCnt);    // die block count
 
     dev_mgr.chBitNum = (int)log2(dev_mgr.chCnt);
     dev_mgr.blkBitNum = (int)log2(dev_mgr.blkCnt);
@@ -225,42 +228,36 @@ int iInitDevConfig(int devCap, int ddrSize) {
     dev_mgr.planeSftCnt = dev_mgr.pageSftCnt + dev_mgr.pageBitNum;
     dev_mgr.blkSftCnt = dev_mgr.planeSftCnt + dev_mgr.planeBitNum;
     dev_mgr.chSftCnt = dev_mgr.blkSftCnt + dev_mgr.blkBitNum;
-
+     
     // initialize lbn manager relative parameters
-    lbn_mgr.lbnEntryCnt = (devCap * 1024 / 4);
-    lbn_mgr.lbnBufCnt = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;
-    lbn_mgr.pLbnBuff = (int*)malloc(lbn_mgr.lbnBufCnt * 4);
+    lbn_mgr.lbnEntryCnt = dev_mgr.blkCnt * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt; // 1 lbn represent 1 page (16KB), ex. lbn0 represent lbn0-1bn3(16KB)
+    lbn_mgr.lbnEntryPerBlk = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;  
+    lbn_mgr.pLbnBuff = (int*)malloc(dev_mgr.blkCnt * 4);
     lbn_mgr.headPtr = 0;
     lbn_mgr.tailPtr = 0;
 
-    for (int i = 0; i < lbn_mgr.lbnBufCnt; i++) {
-        lbn_mgr.pLbnBuff[i] = lbn_mgr.lbnEntryCnt + (i * dev_mgr.pageCnt * dev_mgr.planeCnt);
-        lbn_mgr.tailPtr = lbn_mgr.tailPtr + 1;
+    for (int i = 0; i < dev_mgr.blkCnt; i++) {
+        lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt);
+        lbn_mgr.headPtr++;  // head == tail, queue full, head = tail + 1, queue empty
         lbn_mgr.availLbnCnt++;
     }
-
-    // allocate p2l ddr table 
-    int bitMapSize = ((devCap * 1024 * 1024) / 16) / 8;
-    int payloadSize = sizeof(int) * ((devCap * 1024 * 1024) / 16);
-    int p2lEntryCnt = ((devCap * 1024 * 1024) / 16);
 
     p2l_mgr.hitCnt = p2l_mgr.chkCnt = 0;
     p2l_mgr.pageSize = 1024;
     p2l_mgr.bankSize = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
 
     // allocate p2l bitmap memory
-    pP2lBitmap = (int *)malloc(bitMapSize);
+    pP2lBitmap = (int *)malloc(lbn_mgr.lbnEntryCnt / (32 / 4));
 
     // allocate p2l table memory
     for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
         pP2lTable[idx] = (int *)malloc(sizeof(int) * p2l_mgr.bankSize);
-        pP2lPageIdx[idx] = (int*)malloc(p2l_mgr.bankSize / 4096);
+        pP2lPageIdx[idx] = (int*)malloc(sizeof(int) * (p2l_mgr.bankSize / 1024));
     }
     
-    pP2lSrcTable = (int*)malloc(sizeof(int) * p2lEntryCnt);
-
+    pP2lSrcTable = (int*)malloc(sizeof(int) * lbn_mgr.lbnEntryCnt);
     // allocate data payload buffer
-    pDataPayload = (int*)malloc(payloadSize);
+    pDataPayload = (int*)malloc(sizeof(int) * lbn_mgr.lbnEntryCnt);
     return 0;
 }
 
@@ -274,7 +271,7 @@ int iFlashCmdHandler(int cmd, int pAddr, int *pPayload){
 
     switch (cmd)
     {
-    case D_CMD_WRITE:
+    case E_CMD_WRITE:
         lbn = iGetDataLbn(pAddr);
         if (!lbn) {
             // new block
@@ -290,12 +287,12 @@ int iFlashCmdHandler(int cmd, int pAddr, int *pPayload){
         iUpdateDataLbn(pAddr, lbn);
         break;
 
-    case D_CMD_READ:
+    case E_CMD_READ:
         lbn = iGetDataLbn(pAddr);
         iReadPageData(lbn, pPayload);
         break;
 
-    case D_CMD_ERASE:
+    case E_CMD_ERASE:
         iRecycleBlkLbn(pAddr);
         break;
     default:

@@ -16,6 +16,14 @@ long lpl2ChkCnt() {
 	return p2l_mgr.chkCnt;
 }
 
+int iGetDevCap() {
+	return dev_mgr.dev_cap;
+}
+
+int iGetDdrSize() {
+	return dev_mgr.ddr_size;
+}
+
 int iIssueFlashCmd(int cmd, int pAddr, int* pPayload) {
 	return iFlashCmdHandler(cmd, pAddr, pPayload);
 }
