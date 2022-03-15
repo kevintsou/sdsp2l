@@ -39,9 +39,9 @@ extern "C" {
 	typedef struct s_lbn_mgr {
 		int lbnEntryCnt;    // max entries in this lbn buffer
 		// lbn buffer header
-		int headPtr;
-		int tailPtr;
-		int lbnEntryPerBlk;          // ibn buf entry cnt
+		int headPtr;			// get lbn ptr
+		int tailPtr;			// return lbn ptr
+		int lbnEntryPerBlk;     // ibn buf entry cnt
 		int availLbnCnt;        // available lbn cnt
 		int* pLbnBuff;          // lbn buffer
 		int* pBlk2Lbn;          // block to lbn lookup table

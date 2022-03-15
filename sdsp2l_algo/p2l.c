@@ -121,18 +121,19 @@ int iCopyP2lPageToDram(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // read the new p2l set from the src table to dram
     int addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    int pageOff = (addr % p2l_mgr.bankSize) / 1024;
-    int idx = pAddr / 1024;
+    int pageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
+    int idx = pAddr / p2l_mgr.pageSize;
 
     pP2lPageIdx[ch][pageOff] = idx;
 
     if (pP2lSrcTable == NULL) {
         while (1);
     }
-    int *pSrc = &pP2lSrcTable[idx * 4096];
-    int *pDes = &pP2lDramTable[ch][pageOff * 1024];
-    memcpy(pDes, pSrc, 4096);
+    int *pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
+    int *pDes = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
+    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
+    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
     // set p2l bitmap table
     for (int i = 0; i < (1024 / 32); i++) {
         pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
@@ -193,7 +194,7 @@ int iAllocBlkLbn(int pAddr) {
 
     // error chck
     if (page) {
-        while (1);
+        //while (1);
     }
 
     if (lbn_mgr.availLbnCnt) {
@@ -264,6 +265,12 @@ int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
     if (ddrSize > (devCap / 4)) {
         ddrSize = (devCap / 4);
     }
+
+    // clear structure content
+    memset(&dev_mgr, 0, sizeof(dev_mgr));
+    memset(&p2l_mgr, 0, sizeof(p2l_mgr));
+    memset(&lbn_mgr, 0, sizeof(lbn_mgr));
+
     dev_mgr.ddr_size = ddrSize;
 
     dev_mgr.chCnt = 8;
@@ -284,16 +291,21 @@ int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
     // initialize lbn manager relative parameters
     lbn_mgr.lbnEntryCnt = dev_mgr.blkCnt * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt; // 1 lbn represent 1 page (16KB), ex. lbn0 represent lbn0-1bn3(16KB)
     lbn_mgr.lbnEntryPerBlk = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;  
-    //lbn_mgr.pLbnBuff = (int*)malloc(dev_mgr.blkCnt * 4);
+    
     lbn_mgr.pLbnBuff = (bufPtr + (bufSize/4));
     bufSize += dev_mgr.blkCnt * 4;
     memset(lbn_mgr.pLbnBuff, 0 , dev_mgr.blkCnt * 4);
+    
+    lbn_mgr.pBlk2Lbn = (bufPtr + (bufSize / 4));
+    bufSize += dev_mgr.blkCnt * 4;
+    memset(lbn_mgr.pBlk2Lbn, 0, dev_mgr.blkCnt * 4);
+
     lbn_mgr.headPtr = 0;
     lbn_mgr.tailPtr = 0;
 
     for (int i = 0; i < dev_mgr.blkCnt; i++) {
         lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt);
-        lbn_mgr.headPtr++;  // head == tail, queue full, head = tail + 1, queue empty
+        lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
         lbn_mgr.availLbnCnt++;
     }
 
@@ -301,20 +313,21 @@ int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
     p2l_mgr.pageSize = 1024;
     p2l_mgr.bankSize = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
 
+
     // allocate p2l bitmap memory
-    //pP2lBitmap = (int *)malloc(lbn_mgr.lbnEntryCnt / (32 / 4));
     pP2lBitmap = (bufPtr + (bufSize / 4));
     bufSize += (lbn_mgr.lbnEntryCnt / (32 / 4));
     memset(pP2lBitmap, 0, lbn_mgr.lbnEntryCnt / (32 / 4));
+    
     // allocate p2l table memory
     for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
-        //pP2lValBitmap[idx] = (int*)malloc(sizeof(int) * (p2l_mgr.bankSize / 32));
+
         pP2lValBitmap[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * (p2l_mgr.bankSize / 32));
-        //pP2lDramTable[idx] = (int *)malloc(sizeof(int) * p2l_mgr.bankSize);
+
         pP2lDramTable[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * p2l_mgr.bankSize);
-        //pP2lPageIdx[idx] = (int*)malloc(sizeof(int) * (p2l_mgr.bankSize / 1024));
+
         pP2lPageIdx[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * (p2l_mgr.bankSize / 1024));
 
@@ -330,14 +343,13 @@ int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
         }
     }
     
-    //pP2lSrcTable = (int*)malloc(sizeof(int) * lbn_mgr.lbnEntryCnt);
     pP2lSrcTable = (bufPtr + (bufSize / 4));
     bufSize += (sizeof(int) * lbn_mgr.lbnEntryCnt);
     if (pP2lSrcTable != NULL) {
         memset(pP2lSrcTable, 0, sizeof(int) * lbn_mgr.lbnEntryCnt);
     }
+
     // allocate data payload buffer
-    //pDataPayload = (int*)malloc(sizeof(int) * lbn_mgr.lbnEntryCnt);
     pDataPayload = (bufPtr + (bufSize / 4));
     bufSize += (sizeof(int) * lbn_mgr.lbnEntryCnt);
     if (pDataPayload != NULL) {
@@ -385,7 +397,8 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         lbn = iGetDataLbn(pAddr);
         if (!lbn) {
             // new block
-            if ( (page == 0) && (plane == 0)) {
+            //if ( (page == 0) && (plane == 0)) {
+            if (lbn_mgr.chAllocLbn[ch] == 0) {  // notice that the write page may out of order
                 lbn = iAllocBlkLbn(pAddr); // get a block start lbn
             }
             else {
@@ -393,7 +406,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
                 lbn = iAllocPageLbn(pAddr);
             }
         }
-        iWritePageData(lbn, pPayload);
+        iWritePageData(lbn, &lbn); // use lbn as the data write in to storage for comparing 
         iUpdateDataLbn(pAddr, lbn);
         break;
 
