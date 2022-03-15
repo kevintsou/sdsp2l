@@ -24,10 +24,10 @@ int iGetDdrSize() {
 	return dev_mgr.ddr_size;
 }
 
-int iIssueFlashCmd(int cmd, int pAddr, int* pPayload) {
-	return iFlashCmdHandler(cmd, pAddr, pPayload);
+int iIssueFlashCmd(int cmd, int ch, int blk, int plane, int page, int* pPayload) {
+	return iFlashCmdHandler(cmd, ch, blk, plane, page, pPayload);
 }
 
-int iInitDeviceConfig(int dev_size, int ddr_size) {
-	return iInitDevConfig(dev_size, ddr_size);
+int iInitDeviceConfig(int dev_size, int ddr_size, int *bufPtr) {
+	return iInitDevConfig(dev_size, ddr_size, bufPtr);
 }
