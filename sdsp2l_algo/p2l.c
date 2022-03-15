@@ -258,8 +258,13 @@ int iAllocPageLbn(int pAddr) {
     dev_cap : device capacity in GB 
     ddr_size : ddr size in MB
 */
-int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
+int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int *bufPtr) {
     int bufSize = 0;
+
+    if ((chCnt > D_MAX_CH_CNT) || (planeCnt > D_MAX_PLANE_CNT) || (pageCnt > D_MAX_PAGE_CNT)) {
+        return 1;
+    }
+
     dev_mgr.dev_cap = devCap;
 
     if (ddrSize > (devCap / 4)) {
@@ -273,9 +278,9 @@ int iInitDevConfig(int devCap, int ddrSize, int *bufPtr) {
 
     dev_mgr.ddr_size = ddrSize;
 
-    dev_mgr.chCnt = 8;
-    dev_mgr.pageCnt = 1024;
-    dev_mgr.planeCnt = 4;
+    dev_mgr.chCnt = chCnt;
+    dev_mgr.pageCnt = pageCnt;
+    dev_mgr.planeCnt = planeCnt;
     dev_mgr.blkCnt = (devCap * 1024 * 1024) / (16 * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt);    // die block count
 
     dev_mgr.chBitNum = (int)log2(dev_mgr.chCnt);

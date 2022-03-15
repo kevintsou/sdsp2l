@@ -6,6 +6,8 @@ extern "C" {
 
 	#define D_MAX_CE_CNT 1
 	#define D_MAX_CH_CNT 8
+	#define D_MAX_PLANE_CNT	8
+	#define D_MAX_PAGE_CNT 4096
 
 	typedef struct s_p2l_mgr {
 		long hitCnt;
@@ -56,7 +58,7 @@ extern "C" {
 	extern t_dev_mgr dev_mgr;
 
 	extern int iSwapP2lPage(int pAddr);
-	extern int iInitDevConfig(int devCap, int ddrSize, int* bufPtr);
+	extern int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr);
 	extern int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int* pPayload);
 
 

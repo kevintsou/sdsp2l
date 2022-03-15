@@ -28,6 +28,6 @@ int iIssueFlashCmd(int cmd, int ch, int blk, int plane, int page, int* pPayload)
 	return iFlashCmdHandler(cmd, ch, blk, plane, page, pPayload);
 }
 
-int iInitDeviceConfig(int dev_size, int ddr_size, int *bufPtr) {
-	return iInitDevConfig(dev_size, ddr_size, bufPtr);
+int iInitDeviceConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr) {
+	return iInitDevConfig(devCap, ddrSize, chCnt, planeCnt, pageCnt, bufPtr);
 }
