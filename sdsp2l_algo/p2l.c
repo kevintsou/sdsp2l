@@ -428,14 +428,3 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
     }
     return lbn;
 }
-
-/*
-    main funciton
-*/
-static int sdsp2l_main(){
-
-    //iInitDevConfig(128, 32);    // 128GB/32MB ddr, 256 block
-
-
-    return 0;
-}
