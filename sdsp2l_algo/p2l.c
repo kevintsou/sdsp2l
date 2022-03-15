@@ -412,6 +412,11 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
 
     case E_CMD_READ:
         lbn = iGetDataLbn(pAddr);
+        if (lbn == 0) {
+            *pPayload = 0xFFFFFFFF;
+            lbn = 0xFFFFFFFF;
+            return lbn;
+        }
         iReadPageData(lbn, pPayload);
         break;
 
