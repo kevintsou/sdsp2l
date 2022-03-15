@@ -135,7 +135,7 @@ int iCopyP2lPageToDram(int pAddr) {
 
     pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
     // set p2l bitmap table
-    for (int i = 0; i < (1024 / 32); i++) {
+    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
         pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
     }
     return 0;
@@ -153,29 +153,30 @@ int iSwapP2lPage(int pAddr){
 
     // store the p2l set to p2l src table
     addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    pageOff = (addr % p2l_mgr.bankSize) / 1024;
+    pageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
 
     idx = pP2lPageIdx[ch][pageOff];
-    pSrc = &pP2lDramTable[ch][pageOff * 1024];
-    pDes = &pP2lSrcTable[idx * 4096];
+    pSrc = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
+    pDes = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
 
-    memcpy(pDes, pSrc, 4096);
+    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
     // clear p2l bitmap table
-    for (int i = 0; i < (1024 / 32); i++) {
-        pP2lBitmap[i + (idx / 8)] = 0x0;
+    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
+        pP2lBitmap[i + ((idx * p2l_mgr.pageSize) / 32)] = 0x0;
     }
 
     // read the new p2l set from the src table to dram
-    idx = pAddr / 1024;
+    idx = pAddr / p2l_mgr.pageSize;
     pP2lPageIdx[ch][pageOff] = idx;
-    pSrc = &pP2lSrcTable[idx * 4096];
-    pDes = &pP2lDramTable[ch][pageOff * 1024];
+    pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
+    pDes = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
 
-    memcpy(pDes, pSrc, 4096);
+    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
+    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
     // set p2l bitmap table
-    for (int i = 0; i < (1024/32); i ++) {
+    for (int i = 0; i < (p2l_mgr.pageSize /32); i ++) {
         pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
     }
 
@@ -228,6 +229,7 @@ int iRecycleBlkLbn(int pAddr) {
     lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
     lbn_mgr.availLbnCnt++;
     
+    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
     // clear lbn in p2l table for each page
     // use dma instead in future
     for (int i = 0; i < (dev_mgr.pageCnt * dev_mgr.planeCnt); i++) {
@@ -265,8 +267,6 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
         return 1;
     }
 
-    dev_mgr.dev_cap = devCap;
-
     if (ddrSize > (devCap / 4)) {
         ddrSize = (devCap / 4);
     }
@@ -276,6 +276,8 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     memset(&p2l_mgr, 0, sizeof(p2l_mgr));
     memset(&lbn_mgr, 0, sizeof(lbn_mgr));
 
+
+    dev_mgr.dev_cap = devCap;
     dev_mgr.ddr_size = ddrSize;
 
     dev_mgr.chCnt = chCnt;
