@@ -31,3 +31,7 @@ int iIssueFlashCmd(int cmd, int ch, int blk, int plane, int page, int* pPayload)
 int iInitDeviceConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr) {
 	return iInitDevConfig(devCap, ddrSize, chCnt, planeCnt, pageCnt, bufPtr);
 }
+
+int iGetTableSize() {
+	return p2l_mgr.tableSize;
+}

@@ -49,6 +49,23 @@ int iChkP2lValBitmap(int pAddr) {
 
 
 /*
+    set dram valid bitmap
+*/
+int iSetP2lValBitmap(int pAddr) {
+    int ch = D_GET_CH_ADDR(pAddr);
+    // get the entry index in dram table
+    pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.bankSize;
+    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
+
+    // set p2l bitmap table
+    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
+        pP2lValBitmap[ch][i + (pAddr / 32)] = 0xFFFFFFFF;
+    }
+    return 0;
+}
+
+
+/*
     Translate to LBA info from phisical address
 
     Notice : it will cause unexpected failure is the p2l is not in dram,
@@ -107,7 +124,10 @@ int iUpdateDataLbn(int pAddr, int lbn) {
     pAddr = pAddr & (~(ch << dev_mgr.chSftCnt));
 
     if (!D_CHK_P2L_BITMAP(pAddr)) {   
-        if (iSwapP2lPage(pAddr) == 1) {
+        if (iChkP2lValBitmap(pAddr) == 0) {
+            iCopyP2lPageToDram(pAddr);
+        }
+        else if (iSwapP2lPage(pAddr) == 1) {
             while (1);
         }
     }
@@ -121,16 +141,16 @@ int iCopyP2lPageToDram(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // read the new p2l set from the src table to dram
     int addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    int pageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
+    int ddrPageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
     int idx = pAddr / p2l_mgr.pageSize;
 
-    pP2lPageIdx[ch][pageOff] = idx;
+    pP2lPageIdx[ch][ddrPageOff] = idx;
 
     if (pP2lSrcTable == NULL) {
         while (1);
     }
     int *pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
-    int *pDes = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
+    int *pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
     memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
     pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
@@ -138,6 +158,10 @@ int iCopyP2lPageToDram(int pAddr) {
     for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
         pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
     }
+
+    // set valid bitmap indicate that the dram table entry is valid
+    iSetP2lValBitmap(pAddr);
+
     return 0;
 }
 
@@ -148,15 +172,15 @@ int iSwapP2lPage(int pAddr){
     int ch = D_GET_CH_ADDR(pAddr);
     int idx = 0;
     int addr = 0;
-    int pageOff = 0;
+    int ddrPageOff = 0;
     int *pSrc, *pDes;
 
     // store the p2l set to p2l src table
     addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    pageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
+    ddrPageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
 
-    idx = pP2lPageIdx[ch][pageOff];
-    pSrc = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
+    idx = pP2lPageIdx[ch][ddrPageOff];
+    pSrc = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
     pDes = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
 
     memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
@@ -168,9 +192,9 @@ int iSwapP2lPage(int pAddr){
 
     // read the new p2l set from the src table to dram
     idx = pAddr / p2l_mgr.pageSize;
-    pP2lPageIdx[ch][pageOff] = idx;
+    pP2lPageIdx[ch][ddrPageOff] = idx;
     pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
-    pDes = &pP2lDramTable[ch][pageOff * p2l_mgr.pageSize];
+    pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
 
     memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
@@ -362,6 +386,8 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     if (pDataPayload != NULL) {
         memset(pDataPayload, 0, sizeof(int) * lbn_mgr.lbnEntryCnt);
     }
+
+    p2l_mgr.tableSize = bufSize;
     return 0;
 }
 
@@ -396,12 +422,10 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
     }
 
     int pAddr = (ch << dev_mgr.chSftCnt) | (blk << dev_mgr.blkSftCnt) | (plane << dev_mgr.planeSftCnt) | page;
-
+    lbn = iGetDataLbn(pAddr);
     switch (cmd)
     {
     case E_CMD_WRITE:
-
-        lbn = iGetDataLbn(pAddr);
         if (!lbn) {
             // new block
             //if ( (page == 0) && (plane == 0)) {
@@ -418,7 +442,6 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         break;
 
     case E_CMD_READ:
-        lbn = iGetDataLbn(pAddr);
         if (lbn == 0) {
             *pPayload = 0xFFFFFFFF;
             lbn = 0xFFFFFFFF;
@@ -428,7 +451,13 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         break;
 
     case E_CMD_ERASE:
-        iRecycleBlkLbn(pAddr);
+        // if data block programed
+        if (lbn) {
+            iRecycleBlkLbn(pAddr);
+        }
+        else {
+            lbn = 0xFFFFFFFF;
+        }
         break;
     default:
         break;

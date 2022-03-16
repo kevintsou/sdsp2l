@@ -14,6 +14,7 @@ extern "C" {
 		long chkCnt;
 		int bankSize;      // entry in a bank
 		int pageSize;      // entry in a page
+		int tableSize;
 	}t_p2l_mgr;
 	
 	// device configuration
