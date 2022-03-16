@@ -61,7 +61,7 @@ extern "C" {
 	extern int iSwapP2lPage(int pAddr);
 	extern int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr);
 	extern int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int* pPayload);
-
+	extern int iIssueFlashCmdpAddr(int cmd, int pAddr, int* pPayload);
 
 
 #ifdef __cplusplus

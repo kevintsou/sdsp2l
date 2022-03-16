@@ -464,3 +464,12 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
     }
     return lbn;
 }
+
+int iIssueFlashCmdpAddr(int cmd, int pAddr, int* pPayload) {
+    int ch = D_GET_CH_ADDR(pAddr);
+    int blk = D_GET_BLOCK_ADDR(pAddr);
+    int page = D_GET_PAGE_ADDR(pAddr);
+    int plane = D_GET_PLANE_ADDR(pAddr);
+
+    return iFlashCmdHandler(cmd, ch, blk, plane, page, pPayload);
+}

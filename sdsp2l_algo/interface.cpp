@@ -28,6 +28,10 @@ int iIssueFlashCmd(int cmd, int ch, int blk, int plane, int page, int* pPayload)
 	return iFlashCmdHandler(cmd, ch, blk, plane, page, pPayload);
 }
 
+int iIssueFlashCmdEn(int cmd, int pAddr, int* pPayload) {
+	return iIssueFlashCmdpAddr(cmd, pAddr, pPayload);
+}
+
 int iInitDeviceConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr) {
 	return iInitDevConfig(devCap, ddrSize, chCnt, planeCnt, pageCnt, bufPtr);
 }
@@ -35,3 +39,4 @@ int iInitDeviceConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int page
 int iGetTableSize() {
 	return p2l_mgr.tableSize;
 }
+
