@@ -176,7 +176,7 @@ int iSwapP2lPage(int pAddr){
 
     pageIdx = pP2lPageIdx[ch][ddrPageOff];
     pSrc = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
-    pDes = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage * 4];
+    pDes = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage];
 
     memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
 
@@ -186,7 +186,7 @@ int iSwapP2lPage(int pAddr){
     // read the new p2l set from the src table to dram
     pageIdx = pAddr / p2l_mgr.entryPerPage;
     pP2lPageIdx[ch][ddrPageOff] = pageIdx;
-    pSrc = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage * 4];
+    pSrc = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage];
     pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
 
     memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
