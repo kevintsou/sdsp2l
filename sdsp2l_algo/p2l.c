@@ -31,7 +31,7 @@ enum {
 #define D_GET_PLANE_ADDR(x)     ((x >> dev_mgr.planeSftCnt) & (dev_mgr.planeCnt - 1))
 #define D_GET_PAGE_ADDR(x)      ((x >> dev_mgr.pageSftCnt) & (dev_mgr.pageCnt - 1))
 
-#define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[(x/p2l_mgr.pageSize) / 32] & (1 << ((x/p2l_mgr.pageSize) % 32)))
+#define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[(x/p2l_mgr.entryPerPage) / 32] & (1 << ((x/p2l_mgr.entryPerPage) % 32)))
 
 
 // function declaration
@@ -43,8 +43,8 @@ int iCopyP2lPageToDram(int pAddr);
 int iChkP2lValBitmap(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // get the entry index in dram table
-    pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.bankSize;
-    return pP2lValBitmap[ch][(pAddr / p2l_mgr.pageSize) / 32] & (1 << ((pAddr / p2l_mgr.pageSize) % 32));
+    pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.entryPerBank;
+    return pP2lValBitmap[ch][(pAddr / p2l_mgr.entryPerPage) / 32] & (1 << ((pAddr / p2l_mgr.entryPerPage) % 32));
 }
 
 
@@ -54,10 +54,10 @@ int iChkP2lValBitmap(int pAddr) {
 int iSetP2lValBitmap(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // get the entry index in dram table
-    pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.bankSize;
-    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
+    pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.entryPerBank;
+    pAddr = (pAddr / p2l_mgr.entryPerPage) * p2l_mgr.entryPerPage;
 
-    pP2lValBitmap[ch][(pAddr / p2l_mgr.pageSize) / 32] |= (1 << ((pAddr / p2l_mgr.pageSize) % 32));
+    pP2lValBitmap[ch][(pAddr / p2l_mgr.entryPerPage) / 32] |= (1 << ((pAddr / p2l_mgr.entryPerPage) % 32));
     return 0;
 }
 
@@ -73,7 +73,7 @@ int iGetLbnInfo(int pAddr){
     
     pAddr = pAddr & (~(ch << dev_mgr.chSftCnt));
 
-    return pP2lDramTable[ch][pAddr % p2l_mgr.bankSize];
+    return pP2lDramTable[ch][((pAddr / p2l_mgr.entryPerPage) % p2l_mgr.pagePerBank)* p2l_mgr.entryPerPage + (pAddr % p2l_mgr.entryPerPage)];
 }
 
 
@@ -128,7 +128,7 @@ int iUpdateDataLbn(int pAddr, int lbn) {
             while (1);
         }
     }
-    pP2lDramTable[ch][pAddr % p2l_mgr.bankSize] = lbn;
+    pP2lDramTable[ch][((pAddr / p2l_mgr.entryPerPage) % p2l_mgr.pagePerBank) * p2l_mgr.entryPerPage + (pAddr % p2l_mgr.entryPerPage)] = lbn;
     return 0;
 }
 
@@ -138,21 +138,21 @@ int iCopyP2lPageToDram(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // read the new p2l set from the src table to dram
     int addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    int ddrPageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
-    int idx = pAddr / p2l_mgr.pageSize;
+    int ddrPageOff = (addr % p2l_mgr.entryPerBank) / p2l_mgr.entryPerPage;
+    int idx = pAddr / p2l_mgr.entryPerPage;
 
     pP2lPageIdx[ch][ddrPageOff] = idx;
 
     if (pP2lSrcTable == NULL) {
         while (1);
     }
-    int *pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
-    int *pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
-    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
+    int *pSrc = &pP2lSrcTable[idx * p2l_mgr.entryPerPage * 4];
+    int *pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
+    memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
 
-    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
+    pAddr = (pAddr / p2l_mgr.entryPerPage) * p2l_mgr.entryPerPage;
     // set p2l bitmap table
-    pP2lBitmap[(pAddr / p2l_mgr.pageSize) / 32] |= 1 << ((pAddr / p2l_mgr.pageSize) % 32);
+    pP2lBitmap[(pAddr / p2l_mgr.entryPerPage) / 32] |= 1 << ((pAddr / p2l_mgr.entryPerPage) % 32);
 
     // set valid bitmap indicate that the dram table entry is valid
     iSetP2lValBitmap(pAddr);
@@ -165,34 +165,33 @@ int iCopyP2lPageToDram(int pAddr) {
 */
 int iSwapP2lPage(int pAddr){
     int ch = D_GET_CH_ADDR(pAddr);
-    int idx = 0;
+    int pageIdx = 0;
     int addr = 0;
     int ddrPageOff = 0;
     int *pSrc, *pDes;
 
-    // store the p2l set to p2l src table
+    // flush the p2l page from dram to p2l src table
     addr = pAddr & (~(ch << dev_mgr.chSftCnt));
-    ddrPageOff = (addr % p2l_mgr.bankSize) / p2l_mgr.pageSize;
+    ddrPageOff = ((addr / p2l_mgr.entryPerPage) % p2l_mgr.pagePerBank);
 
-    idx = pP2lPageIdx[ch][ddrPageOff];
-    pSrc = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
-    pDes = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
+    pageIdx = pP2lPageIdx[ch][ddrPageOff];
+    pSrc = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
+    pDes = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage * 4];
 
-    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
+    memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
 
     // clear p2l bitmap table
-    pP2lBitmap[idx / 32] &= ~(1 << (idx % 32));
+    pP2lBitmap[pageIdx / 32] &= ~(1 << (pageIdx % 32));
 
     // read the new p2l set from the src table to dram
-    idx = pAddr / p2l_mgr.pageSize;
-    pP2lPageIdx[ch][ddrPageOff] = idx;
-    pSrc = &pP2lSrcTable[idx * p2l_mgr.pageSize * 4];
-    pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.pageSize];
+    pageIdx = pAddr / p2l_mgr.entryPerPage;
+    pP2lPageIdx[ch][ddrPageOff] = pageIdx;
+    pSrc = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage * 4];
+    pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
 
-    memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
+    memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
 
-    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
-    pP2lBitmap[(pAddr / p2l_mgr.pageSize) / 32] |= 1 << ((pAddr / p2l_mgr.pageSize) % 32);
+    pP2lBitmap[pageIdx / 32] |= 1 << (pageIdx % 32);
 
     return 0;
 }
@@ -207,18 +206,13 @@ int iAllocBlkLbn(int pAddr) {
     int page = D_GET_PAGE_ADDR(pAddr);
     int lbn = 0;
 
-    // error chck
-    if (page) {
-        //while (1);
-    }
-
     if (lbn_mgr.availLbnCnt) {
         lbn = lbn_mgr.pLbnBuff[lbn_mgr.headPtr];
-        lbn_mgr.chStartLbn[ch] = lbn;
-        lbn_mgr.chAllocLbn[ch] = lbn + 1;   // already allocated to a page, point to next 1
-        lbn_mgr.pBlk2Lbn[blk] = lbn;
+        lbn_mgr.pChRestLbnNum[ch][blk] = (dev_mgr.pageCnt * dev_mgr.planeCnt) - 1;
+        lbn_mgr.pChAllocLbn[ch][blk] = lbn + 4;   // already allocated to a page, point to next 1
+        lbn_mgr.pBlk2Lbn[ch][blk] = lbn;
 
-        lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % dev_mgr.blkCnt;
+        lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnQdepth;
         lbn_mgr.availLbnCnt--;
     }
     else {
@@ -236,14 +230,14 @@ int iRecycleBlkLbn(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     int blk = D_GET_BLOCK_ADDR(pAddr);
 
-    lbn_mgr.pLbnBuff[lbn_mgr.tailPtr] = lbn_mgr.pBlk2Lbn[blk];
+    lbn_mgr.pLbnBuff[lbn_mgr.tailPtr] = lbn_mgr.pBlk2Lbn[ch][blk];
 
-    lbn_mgr.chStartLbn[ch] = 0;
-    lbn_mgr.chAllocLbn[ch] = 0;
-    lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
+    lbn_mgr.pChRestLbnNum[ch][blk] = 0;
+    lbn_mgr.pChAllocLbn[ch][blk] = 0;
+    lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnQdepth;
     lbn_mgr.availLbnCnt++;
     
-    pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
+    pAddr = (pAddr / p2l_mgr.entryPerPage) * p2l_mgr.entryPerPage;
     // clear lbn in p2l table for each page
     // use dma instead in future
     for (int i = 0; i < (dev_mgr.pageCnt * dev_mgr.planeCnt); i++) {
@@ -261,8 +255,9 @@ int iAllocPageLbn(int pAddr) {
     int blk = D_GET_BLOCK_ADDR(pAddr);
     int lbn = 0;
 
-    lbn = lbn_mgr.chAllocLbn[ch];
-    lbn_mgr.chAllocLbn[ch]++;
+    lbn = lbn_mgr.pChAllocLbn[ch][blk];
+    lbn_mgr.pChAllocLbn[ch][blk] += 4;
+    lbn_mgr.pChRestLbnNum[ch][blk] -= 1;
     return lbn;
 }
 
@@ -312,57 +307,75 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     // initialize lbn manager relative parameters
     lbn_mgr.lbnEntryCnt = dev_mgr.blkCnt * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt; // 1 lbn represent 1 page (16KB), ex. lbn0 represent lbn0-1bn3(16KB)
     lbn_mgr.lbnEntryPerBlk = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;  
-    
+    lbn_mgr.lbnQdepth = dev_mgr.blkCnt * dev_mgr.chCnt;
+
     lbn_mgr.pLbnBuff = (bufPtr + (bufSize/4));
-    bufSize += dev_mgr.blkCnt * 4;
-    memset(lbn_mgr.pLbnBuff, 0 , dev_mgr.blkCnt * 4);
-    
-    lbn_mgr.pBlk2Lbn = (bufPtr + (bufSize / 4));
-    bufSize += dev_mgr.blkCnt * 4;
-    memset(lbn_mgr.pBlk2Lbn, 0, dev_mgr.blkCnt * 4);
+    bufSize += lbn_mgr.lbnQdepth * 4;
+    memset(lbn_mgr.pLbnBuff, 0 , lbn_mgr.lbnQdepth * 4);
+   
 
     lbn_mgr.headPtr = 0;
     lbn_mgr.tailPtr = 0;
 
     // allocate lbn queue
-    for (int i = 0; i < dev_mgr.blkCnt; i++) {
+    for (int i = 0; i < lbn_mgr.lbnQdepth; i++) {
         lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/ 1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt * 4); // 16KB page share a entry , there are 4 lbn in a entry
-        lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
+        lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnQdepth;
         lbn_mgr.availLbnCnt++;
     }
 
     p2l_mgr.hitCnt = p2l_mgr.chkCnt = 0;
-    p2l_mgr.pageSize = 1024;
-    p2l_mgr.bankSize = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
+    p2l_mgr.entryPerPage = 1024;
+    p2l_mgr.entryPerBank = (ddrSize * 1024 * 1024) / (dev_mgr.chCnt * sizeof(int));
+    p2l_mgr.pagePerBank = p2l_mgr.entryPerBank / p2l_mgr.entryPerPage;
 
 
     // allocate p2l bitmap memory
     pP2lBitmap = (bufPtr + (bufSize / 4));
-    bufSize += ((lbn_mgr.lbnEntryCnt / p2l_mgr.pageSize) * 4);
-    memset(pP2lBitmap, 0, ((lbn_mgr.lbnEntryCnt / p2l_mgr.pageSize) * 4));
+    bufSize += ((lbn_mgr.lbnEntryCnt / p2l_mgr.entryPerPage) * 4);
+    memset(pP2lBitmap, 0, ((lbn_mgr.lbnEntryCnt / p2l_mgr.entryPerPage) * 4));
     
     // allocate p2l table memory
     for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
 
         pP2lValBitmap[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * (p2l_mgr.bankSize / p2l_mgr.pageSize / 32));
+        bufSize += (sizeof(int) * (p2l_mgr.entryPerBank / p2l_mgr.entryPerPage / 32));
 
         pP2lDramTable[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * p2l_mgr.bankSize);
+        bufSize += (sizeof(int) * p2l_mgr.entryPerBank);
 
         pP2lPageIdx[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * (p2l_mgr.bankSize / 1024));
+        bufSize += (sizeof(int) * (p2l_mgr.entryPerBank / 1024));
 
        
         if (pP2lValBitmap[idx] != NULL) {
-            memset(pP2lValBitmap[idx], 0, sizeof(int) * (p2l_mgr.bankSize / p2l_mgr.pageSize / 32));
+            memset(pP2lValBitmap[idx], 0, sizeof(int) * (p2l_mgr.entryPerBank / p2l_mgr.entryPerPage / 32));
         }
         if (pP2lDramTable[idx] != NULL) {
-            memset(pP2lDramTable[idx], 0, sizeof(int) * p2l_mgr.bankSize);
+            memset(pP2lDramTable[idx], 0, sizeof(int) * p2l_mgr.entryPerBank);
         }
         if (pP2lPageIdx[idx] != NULL) {
-            memset(pP2lPageIdx[idx], 0, sizeof(int) * (p2l_mgr.bankSize / 1024));
+            memset(pP2lPageIdx[idx], 0, sizeof(int) * (p2l_mgr.entryPerBank / 1024));
         }
+
+        lbn_mgr.pChRestLbnNum[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+
+        if (lbn_mgr.pChRestLbnNum[idx] != NULL) {
+            memset(lbn_mgr.pChRestLbnNum[idx], 0, (sizeof(int) * dev_mgr.blkCnt));
+        }
+
+        lbn_mgr.pChAllocLbn[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+
+        if (lbn_mgr.pChAllocLbn[idx] != NULL) {
+            memset(lbn_mgr.pChAllocLbn[idx], 0, (sizeof(int) * dev_mgr.blkCnt));
+        }
+
+        lbn_mgr.pBlk2Lbn[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+        memset(lbn_mgr.pBlk2Lbn[idx], 0, (sizeof(int)* dev_mgr.blkCnt));
+
     }
     
     pP2lSrcTable = (bufPtr + (bufSize / 4));
@@ -412,7 +425,14 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         return lbn; // cmd hander completed, ileagal flash address, return lbn = 0 to host.
     }
 
+    if ((blk == 0xe0) && (page == 9)) {
+        int ii = 9;
+    }
+
     int pAddr = (ch << dev_mgr.chSftCnt) | (blk << dev_mgr.blkSftCnt) | (plane << dev_mgr.planeSftCnt) | page;
+
+
+
     lbn = iGetDataLbn(pAddr);
 
     switch (cmd)
@@ -421,7 +441,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         if (!lbn) {
             // new block
             //if ( (page == 0) && (plane == 0)) {
-            if (lbn_mgr.chAllocLbn[ch] == 0) {  // notice that the write page may out of order
+            if (lbn_mgr.pChRestLbnNum[ch][blk] == 0) {  // notice that the write page may out of order
                 lbn = iAllocBlkLbn(pAddr); // get a block start lbn
             }
             else {
@@ -444,7 +464,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
 
         // debug code
         if (*pPayload != lbn) {
-            //while (1);
+            while (1);
         }
         break;
 

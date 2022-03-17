@@ -12,8 +12,9 @@ extern "C" {
 	typedef struct s_p2l_mgr {
 		long hitCnt;
 		long chkCnt;
-		int bankSize;      // entry in a bank
-		int pageSize;      // entry in a page
+		int entryPerBank;       // entry in a bank
+		int pagePerBank;		// page in a bank
+		int entryPerPage;       // entry in a page
 		int tableSize;
 	}t_p2l_mgr;
 	
@@ -46,12 +47,14 @@ extern "C" {
 		int tailPtr;			// return lbn ptr
 		int lbnEntryPerBlk;     // ibn buf entry cnt
 		int availLbnCnt;        // available lbn cnt
+		int lbnQdepth;			// lbn queue depth
 		int* pLbnBuff;          // lbn buffer
-		int* pBlk2Lbn;          // block to lbn lookup table
+	
 
 		// lbn info current use
-		int chStartLbn[D_MAX_CH_CNT];   // ch lbn queue for queue current lbn start value    
-		int chAllocLbn[D_MAX_CH_CNT];   // current allocated lbn for the write cmd for each channel
+		int *pBlk2Lbn[D_MAX_CH_CNT];          // block to lbn lookup table
+		int *pChRestLbnNum[D_MAX_CH_CNT];   // available lbn count for this block
+		int *pChAllocLbn[D_MAX_CH_CNT];   // current allocated lbn for the write cmd for each channel
 	}t_lbn_mgr;
 
 	extern t_p2l_mgr p2l_mgr;
