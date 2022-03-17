@@ -26,12 +26,12 @@ enum {
 
 // get flash info
 // pAddr : CH/CE/BLK/PLANE/PAGE
-#define D_GET_CH_ADDR(x)        ((x >> dev_mgr.chSftCnt) & (dev_mgr.chBitNum - 1))
-#define D_GET_BLOCK_ADDR(x)     ((x >> dev_mgr.blkSftCnt) & (dev_mgr.blkBitNum - 1))
-#define D_GET_PLANE_ADDR(x)     ((x >> dev_mgr.planeSftCnt) & (dev_mgr.planeBitNum - 1))
-#define D_GET_PAGE_ADDR(x)      ((x >> dev_mgr.pageSftCnt) & (dev_mgr.pageBitNum - 1))
+#define D_GET_CH_ADDR(x)        ((x >> dev_mgr.chSftCnt) & (dev_mgr.chCnt - 1))
+#define D_GET_BLOCK_ADDR(x)     ((x >> dev_mgr.blkSftCnt) & (dev_mgr.blkCnt - 1))
+#define D_GET_PLANE_ADDR(x)     ((x >> dev_mgr.planeSftCnt) & (dev_mgr.planeCnt - 1))
+#define D_GET_PAGE_ADDR(x)      ((x >> dev_mgr.pageSftCnt) & (dev_mgr.pageCnt - 1))
 
-#define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[x / 32] & (1 << (x % 32)))
+#define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[(x/p2l_mgr.pageSize) / 32] & (1 << ((x/p2l_mgr.pageSize) % 32)))
 
 
 // function declaration
@@ -44,7 +44,7 @@ int iChkP2lValBitmap(int pAddr) {
     int ch = D_GET_CH_ADDR(pAddr);
     // get the entry index in dram table
     pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.bankSize;
-    return pP2lValBitmap[ch][pAddr / 32] & (1 << (pAddr % 32));
+    return pP2lValBitmap[ch][(pAddr / p2l_mgr.pageSize) / 32] & (1 << ((pAddr / p2l_mgr.pageSize) % 32));
 }
 
 
@@ -57,10 +57,7 @@ int iSetP2lValBitmap(int pAddr) {
     pAddr = (pAddr & (~(ch << dev_mgr.chSftCnt))) % p2l_mgr.bankSize;
     pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
 
-    // set p2l bitmap table
-    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
-        pP2lValBitmap[ch][i + (pAddr / 32)] = 0xFFFFFFFF;
-    }
+    pP2lValBitmap[ch][(pAddr / p2l_mgr.pageSize) / 32] |= (1 << ((pAddr / p2l_mgr.pageSize) % 32));
     return 0;
 }
 
@@ -155,9 +152,7 @@ int iCopyP2lPageToDram(int pAddr) {
 
     pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
     // set p2l bitmap table
-    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
-        pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
-    }
+    pP2lBitmap[(pAddr / p2l_mgr.pageSize) / 32] |= 1 << ((pAddr / p2l_mgr.pageSize) % 32);
 
     // set valid bitmap indicate that the dram table entry is valid
     iSetP2lValBitmap(pAddr);
@@ -186,9 +181,7 @@ int iSwapP2lPage(int pAddr){
     memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
     // clear p2l bitmap table
-    for (int i = 0; i < (p2l_mgr.pageSize / 32); i++) {
-        pP2lBitmap[i + ((idx * p2l_mgr.pageSize) / 32)] = 0x0;
-    }
+    pP2lBitmap[idx / 32] &= ~(1 << (idx % 32));
 
     // read the new p2l set from the src table to dram
     idx = pAddr / p2l_mgr.pageSize;
@@ -199,10 +192,7 @@ int iSwapP2lPage(int pAddr){
     memcpy(pDes, pSrc, p2l_mgr.pageSize * 4);
 
     pAddr = (pAddr / p2l_mgr.pageSize) * p2l_mgr.pageSize;
-    // set p2l bitmap table
-    for (int i = 0; i < (p2l_mgr.pageSize /32); i ++) {
-        pP2lBitmap[i + (pAddr / 32)] = 0xFFFFFFFF;
-    }
+    pP2lBitmap[(pAddr / p2l_mgr.pageSize) / 32] |= 1 << ((pAddr / p2l_mgr.pageSize) % 32);
 
     return 0;
 }
@@ -334,8 +324,9 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     lbn_mgr.headPtr = 0;
     lbn_mgr.tailPtr = 0;
 
+    // allocate lbn queue
     for (int i = 0; i < dev_mgr.blkCnt; i++) {
-        lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt);
+        lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/ 1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt * 4); // 16KB page share a entry , there are 4 lbn in a entry
         lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % dev_mgr.blkCnt;
         lbn_mgr.availLbnCnt++;
     }
@@ -347,14 +338,14 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
 
     // allocate p2l bitmap memory
     pP2lBitmap = (bufPtr + (bufSize / 4));
-    bufSize += (lbn_mgr.lbnEntryCnt / (32 / 4));
-    memset(pP2lBitmap, 0, lbn_mgr.lbnEntryCnt / (32 / 4));
+    bufSize += ((lbn_mgr.lbnEntryCnt / p2l_mgr.pageSize) * 4);
+    memset(pP2lBitmap, 0, ((lbn_mgr.lbnEntryCnt / p2l_mgr.pageSize) * 4));
     
     // allocate p2l table memory
     for (int idx = 0; idx < dev_mgr.chCnt; idx++) {
 
         pP2lValBitmap[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * (p2l_mgr.bankSize / 32));
+        bufSize += (sizeof(int) * (p2l_mgr.bankSize / p2l_mgr.pageSize / 32));
 
         pP2lDramTable[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * p2l_mgr.bankSize);
@@ -364,7 +355,7 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
 
        
         if (pP2lValBitmap[idx] != NULL) {
-            memset(pP2lValBitmap[idx], 0, sizeof(int) * (p2l_mgr.bankSize / 32));
+            memset(pP2lValBitmap[idx], 0, sizeof(int) * (p2l_mgr.bankSize / p2l_mgr.pageSize / 32));
         }
         if (pP2lDramTable[idx] != NULL) {
             memset(pP2lDramTable[idx], 0, sizeof(int) * p2l_mgr.bankSize);
@@ -399,7 +390,7 @@ int iChkFlashAddr(int ch, int blk, int plane, int page) {
     if (ch >= dev_mgr.chCnt) {
         err = 1;
     }
-    else if(blk >= dev_mgr.blkBitNum) {
+    else if(blk >= dev_mgr.blkCnt) {
         err = 1;
     }
     else if (plane >= dev_mgr.planeCnt) {
@@ -423,6 +414,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
 
     int pAddr = (ch << dev_mgr.chSftCnt) | (blk << dev_mgr.blkSftCnt) | (plane << dev_mgr.planeSftCnt) | page;
     lbn = iGetDataLbn(pAddr);
+
     switch (cmd)
     {
     case E_CMD_WRITE:
@@ -447,7 +439,13 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
             lbn = 0xFFFFFFFF;
             return lbn;
         }
+
         iReadPageData(lbn, pPayload);
+
+        // debug code
+        if (*pPayload != lbn) {
+            //while (1);
+        }
         break;
 
     case E_CMD_ERASE:
