@@ -47,3 +47,16 @@ int* iGetEraseCntTable(int ch) {
 int* iGetReadCntTable(int ch) {
 	return pRdCntTbl[ch];
 }
+
+int iGetIoBurstCnt(int ch) {
+	return chIoBurstCnt[ch];
+}
+
+int iClearChkHitCnt() {
+	p2l_mgr.hitCnt = 0;
+	p2l_mgr.chkCnt = 0;
+	for (int ch = 0; ch < dev_mgr.chCnt; ch++) {
+		chIoBurstCnt[ch] = 0;
+	}
+	return 0;
+}

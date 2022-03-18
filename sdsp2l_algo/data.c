@@ -5,7 +5,8 @@
 int* pDataPayload;	                // payload buffer
 int* pBlkErCntTbl[D_MAX_CH_CNT];					// erase count table with slc mode bit
 int* pRdCntTbl[D_MAX_CH_CNT];						// die block read count table
-int* pIdlTimeTbl[D_MAX_CH_CNT];					// block idle time table
+int* pIdlTimeTbl[D_MAX_CH_CNT];						// block idle time table
+int	chIoBurstCnt[D_MAX_CH_CNT];						// io burst count for each channel
 
 
 // write 16384+2208=18592 bytes to storage

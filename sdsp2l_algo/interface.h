@@ -13,3 +13,5 @@ extern "C" __declspec(dllexport) int iGetTableSize();
 
 extern "C" __declspec(dllexport) int* iGetEraseCntTable(int ch);
 extern "C" __declspec(dllexport) int* iGetReadCntTable(int ch);
+extern "C" __declspec(dllexport) int iGetIoBurstCnt(int ch);
+extern "C" __declspec(dllexport) int iClearChkHitCnt();

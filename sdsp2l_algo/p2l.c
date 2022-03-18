@@ -491,6 +491,8 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
     default:
         break;
     }
+
+    chIoBurstCnt[ch]++;
     return lbn;
 }
 
