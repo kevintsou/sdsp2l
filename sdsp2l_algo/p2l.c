@@ -340,34 +340,30 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
 
         pP2lValBitmap[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * (p2l_mgr.entryPerBank / p2l_mgr.entryPerPage / 32));
-
-        pP2lDramTable[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * p2l_mgr.entryPerBank);
-
-        pP2lPageIdx[idx] = (bufPtr + (bufSize / 4));
-        bufSize += (sizeof(int) * (p2l_mgr.entryPerBank / 1024));
-
-       
         if (pP2lValBitmap[idx] != NULL) {
             memset(pP2lValBitmap[idx], 0, sizeof(int) * (p2l_mgr.entryPerBank / p2l_mgr.entryPerPage / 32));
         }
+
+        pP2lDramTable[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * p2l_mgr.entryPerBank);
         if (pP2lDramTable[idx] != NULL) {
             memset(pP2lDramTable[idx], 0, sizeof(int) * p2l_mgr.entryPerBank);
         }
+
+        pP2lPageIdx[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * (p2l_mgr.entryPerBank / 1024));
         if (pP2lPageIdx[idx] != NULL) {
             memset(pP2lPageIdx[idx], 0, sizeof(int) * (p2l_mgr.entryPerBank / 1024));
         }
-
+       
         lbn_mgr.pChRestLbnNum[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * dev_mgr.blkCnt);
-
         if (lbn_mgr.pChRestLbnNum[idx] != NULL) {
             memset(lbn_mgr.pChRestLbnNum[idx], 0, (sizeof(int) * dev_mgr.blkCnt));
         }
 
         lbn_mgr.pChAllocLbn[idx] = (bufPtr + (bufSize / 4));
         bufSize += (sizeof(int) * dev_mgr.blkCnt);
-
         if (lbn_mgr.pChAllocLbn[idx] != NULL) {
             memset(lbn_mgr.pChAllocLbn[idx], 0, (sizeof(int) * dev_mgr.blkCnt));
         }
@@ -376,6 +372,23 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
         bufSize += (sizeof(int) * dev_mgr.blkCnt);
         memset(lbn_mgr.pBlk2Lbn[idx], 0, (sizeof(int)* dev_mgr.blkCnt));
 
+        pBlkErCntTbl[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+        if (pBlkErCntTbl[idx] != NULL) {
+            memset(pBlkErCntTbl[idx], 0, sizeof(int) * dev_mgr.blkCnt);
+        }
+
+        pRdCntTbl[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+        if (pRdCntTbl[idx] != NULL) {
+            memset(pRdCntTbl[idx], 0, sizeof(int) * dev_mgr.blkCnt);
+        }
+
+        pIdlTimeTbl[idx] = (bufPtr + (bufSize / 4));
+        bufSize += (sizeof(int) * dev_mgr.blkCnt);
+        if (pIdlTimeTbl[idx] != NULL) {
+            memset(pIdlTimeTbl[idx], 0, sizeof(int) * dev_mgr.blkCnt);
+        }
     }
     
     pP2lSrcTable = (bufPtr + (bufSize / 4));
@@ -460,6 +473,8 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         if (*pPayload != lbn) {
             while (1);
         }
+
+        pRdCntTbl[ch][blk]++;
         break;
 
     case E_CMD_ERASE:
@@ -470,6 +485,8 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         else {
             lbn = 0xFFFFFFFF;
         }
+
+        pBlkErCntTbl[ch][blk]++;
         break;
     default:
         break;

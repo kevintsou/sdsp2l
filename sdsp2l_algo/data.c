@@ -3,6 +3,10 @@
 #include <malloc.h>
 
 int* pDataPayload;	                // payload buffer
+int* pBlkErCntTbl[D_MAX_CH_CNT];					// erase count table with slc mode bit
+int* pRdCntTbl[D_MAX_CH_CNT];						// die block read count table
+int* pIdlTimeTbl[D_MAX_CH_CNT];					// block idle time table
+
 
 // write 16384+2208=18592 bytes to storage
 int iWritePageData(int lbn, int *pPayload) {

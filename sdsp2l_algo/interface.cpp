@@ -40,3 +40,10 @@ int iGetTableSize() {
 	return p2l_mgr.tableSize;
 }
 
+int* iGetEraseCntTable(int ch) {
+	return pBlkErCntTbl[ch];
+}
+
+int* iGetReadCntTable(int ch) {
+	return pRdCntTbl[ch];
+}
