@@ -8,8 +8,9 @@
 #include "p2l.h"
 #include "data.h"
 
-long lp2lHitCnt() {
-	return p2l_mgr.hitCnt;
+int lp2lHitCnt() {
+	int hitRate = ((float)p2l_mgr.hitCnt  / (float)p2l_mgr.chkCnt) * 100;
+	return hitRate;
 }
 
 long lpl2ChkCnt() {
@@ -48,7 +49,7 @@ int* iGetReadCntTable(int ch) {
 	return pRdCntTbl[ch];
 }
 
-int iGetIoBurstCnt(int ch) {
+long iGetIoBurstCnt(int ch) {
 	return chIoBurstCnt[ch];
 }
 

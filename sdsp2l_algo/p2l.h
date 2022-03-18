@@ -10,8 +10,8 @@ extern "C" {
 	#define D_MAX_PAGE_CNT 4096
 
 	typedef struct s_p2l_mgr {
-		long hitCnt;
-		long chkCnt;
+		int hitCnt;
+		int chkCnt;
 		int entryPerBank;       // entry in a bank
 		int pagePerBank;		// page in a bank
 		int entryPerPage;       // entry in a page
