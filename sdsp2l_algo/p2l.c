@@ -210,7 +210,7 @@ int iAllocBlkLbn(int pAddr) {
         lbn = lbn_mgr.pLbnBuff[lbn_mgr.headPtr];
         lbn_mgr.pBlk2Lbn[ch][blk] = lbn;
         lbn_mgr.pChRestLbnNum[ch][blk] = (dev_mgr.pageCnt * dev_mgr.planeCnt) - 1;
-        lbn_mgr.pChAllocLbn[ch][blk] = lbn + 4;   // already allocated to a page, point to next 1
+        lbn_mgr.pChAllocLbn[ch][blk] = lbn + 5;   // already allocated to a page, point to next 1
         
         lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnQdepth;
         lbn_mgr.availLbnCnt--;
@@ -256,7 +256,7 @@ int iAllocPageLbn(int pAddr) {
     int lbn = 0;
 
     lbn = lbn_mgr.pChAllocLbn[ch][blk];
-    lbn_mgr.pChAllocLbn[ch][blk] += 4;
+    lbn_mgr.pChAllocLbn[ch][blk] += 5;
     lbn_mgr.pChRestLbnNum[ch][blk] -= 1;
     return lbn;
 }
@@ -305,7 +305,7 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     dev_mgr.chSftCnt = dev_mgr.blkSftCnt + dev_mgr.blkBitNum;
      
     // initialize lbn manager relative parameters
-    lbn_mgr.lbnEntryCnt = dev_mgr.blkCnt * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt; // 1 lbn represent 1 page (16KB), ex. lbn0 represent lbn0-1bn3(16KB)
+    lbn_mgr.lbnEntryCnt = dev_mgr.blkCnt * dev_mgr.chCnt * dev_mgr.pageCnt * dev_mgr.planeCnt; // 1 lbn represent 1 page (16KB), ex. lbn0 represent lbn0-1bn4(20KB)
     lbn_mgr.lbnEntryPerBlk = lbn_mgr.lbnEntryCnt / dev_mgr.blkCnt;  
     lbn_mgr.lbnQdepth = dev_mgr.blkCnt * dev_mgr.chCnt;
 
@@ -319,7 +319,7 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
 
     // allocate lbn queue
     for (int i = 0; i < lbn_mgr.lbnQdepth; i++) {
-        lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/ 1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt * 4); // 16KB page share a entry , there are 4 lbn in a entry
+        lbn_mgr.pLbnBuff[i] = (lbn_mgr.lbnEntryCnt/ 1024) + (i * dev_mgr.pageCnt * dev_mgr.planeCnt * 5); // 16KB page + 2KB spare share a entry , there are 5 lbn in a entry
         lbn_mgr.tailPtr = (lbn_mgr.tailPtr + 1) % lbn_mgr.lbnQdepth;
         lbn_mgr.availLbnCnt++;
     }
