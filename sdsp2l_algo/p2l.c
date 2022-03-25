@@ -147,7 +147,7 @@ int iCopyP2lPageToDram(int pAddr) {
     if (pP2lSrcTable == NULL) {
         while (1);
     }
-    int *pSrc = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage * 4];
+    int *pSrc = &pP2lSrcTable[pageIdx * p2l_mgr.entryPerPage];
     int *pDes = &pP2lDramTable[ch][ddrPageOff * p2l_mgr.entryPerPage];
     memcpy(pDes, pSrc, p2l_mgr.entryPerPage * 4);
 
@@ -208,10 +208,10 @@ int iAllocBlkLbn(int pAddr) {
 
     if (lbn_mgr.availLbnCnt) {
         lbn = lbn_mgr.pLbnBuff[lbn_mgr.headPtr];
+        lbn_mgr.pBlk2Lbn[ch][blk] = lbn;
         lbn_mgr.pChRestLbnNum[ch][blk] = (dev_mgr.pageCnt * dev_mgr.planeCnt) - 1;
         lbn_mgr.pChAllocLbn[ch][blk] = lbn + 4;   // already allocated to a page, point to next 1
-        lbn_mgr.pBlk2Lbn[ch][blk] = lbn;
-
+        
         lbn_mgr.headPtr = (lbn_mgr.headPtr + 1) % lbn_mgr.lbnQdepth;
         lbn_mgr.availLbnCnt--;
     }
@@ -456,7 +456,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
                 lbn = iAllocPageLbn(pAddr);
             }
         }
-        iWritePageData(lbn, &lbn); // use lbn as the data write in to storage for comparing 
+        iWritePageData(lbn, &pAddr); // use lbn as the data write in to storage for comparing 
         iUpdateDataLbn(pAddr, lbn);
         break;
 
@@ -470,7 +470,11 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
         iReadPageData(lbn, pPayload);
 
         // debug code
-        if (*pPayload != lbn) {
+        if (*pPayload != pAddr) {
+            int ch = D_GET_CH_ADDR(*pPayload);
+            int blk = D_GET_BLOCK_ADDR(*pPayload);
+            int plane = D_GET_PLANE_ADDR(*pPayload);
+            int page = D_GET_PAGE_ADDR(*pPayload);
             while (1);
         }
 

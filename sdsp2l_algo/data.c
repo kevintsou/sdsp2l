@@ -11,12 +11,12 @@ long chIoBurstCnt[D_MAX_CH_CNT];						// io burst count for each channel
 
 // write 16384+2208=18592 bytes to storage
 int iWritePageData(int lbn, int *pPayload) {
-	pDataPayload[lbn - (lbn_mgr.lbnEntryCnt / 1024)] = *pPayload;
+	pDataPayload[(lbn - (lbn_mgr.lbnEntryCnt / 1024))/4] = *pPayload;
 	return 0;
 }
 
 // read 18592 bytes from storage
 int iReadPageData(int lbn, int *pPayload) {
-	*pPayload = pDataPayload[lbn - (lbn_mgr.lbnEntryCnt / 1024)];
+	*pPayload = pDataPayload[(lbn - (lbn_mgr.lbnEntryCnt / 1024))/4];
 	return 0;
 }
