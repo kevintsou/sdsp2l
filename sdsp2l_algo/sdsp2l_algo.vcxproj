@@ -31,7 +31,9 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -89,11 +91,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;NVMEIO_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;NVMEIO_EXPORTS;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <CompileAs>Default</CompileAs>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -101,6 +107,10 @@
       <EnableUAC>false</EnableUAC>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
+      <AdditionalLibraryDirectories>universal_fw_sdk/convertion_libs;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;PHI_E13_LDPC.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT.lib;</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "..\..\sdsp2l_gui\gui\bin\Debug\netcoreapp3.1"</Command>
@@ -167,6 +177,46 @@
     <ClInclude Include="interface.h" />
     <ClInclude Include="p2l.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="universal_fw_sdk\common_struct.h" />
+    <ClInclude Include="universal_fw_sdk\convertion_libs\LdpcEcc.h" />
+    <ClInclude Include="universal_fw_sdk\convertion_libs\PsConversion.h" />
+    <ClInclude Include="universal_fw_sdk\dconfig.h" />
+    <ClInclude Include="universal_fw_sdk\IDPageAndCP_Hex_SSD.h" />
+    <ClInclude Include="universal_fw_sdk\myQtSocket.h" />
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5012_ST.h" />
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5013_ST.h" />
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5016_ST.h" />
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5019_ST.h" />
+    <ClInclude Include="universal_fw_sdk\SATASCSI3111_ST.h" />
+    <ClInclude Include="universal_fw_sdk\U3Def.h" />
+    <ClInclude Include="universal_fw_sdk\ufw\ERROR_CODE.h" />
+    <ClInclude Include="universal_fw_sdk\ufw\stdafx.h" />
+    <ClInclude Include="universal_fw_sdk\ufw\ufw_main.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\MemManager.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\MyFlashInfo.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\NetSCSICmd.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\NewSQLCmd.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvme.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvmeIoctl.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvmeReg.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\ParamStruct.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\spti.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\stdafx.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\targetver.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWFlashCmd.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWInterface.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWLoger.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWSCSICmd.h" />
+    <ClInclude Include="universal_fw_sdk\universal_interface\USBSCSICmd.h" />
+    <ClInclude Include="universal_fw_sdk\usb100.h" />
+    <ClInclude Include="universal_fw_sdk\usbioctl.h" />
+    <ClInclude Include="universal_fw_sdk\usbiodef.h" />
+    <ClInclude Include="universal_fw_sdk\USBSCSI5017_ST.h" />
+    <ClInclude Include="universal_fw_sdk\USBSCSI5017_UART.h" />
+    <ClInclude Include="universal_fw_sdk\USBSCSICmd_ST.h" />
+    <ClInclude Include="universal_fw_sdk\utils\CheckSSDBin.h" />
+    <ClInclude Include="universal_fw_sdk\utils\MicronInfo.h" />
+    <ClInclude Include="universal_fw_sdk\virtual_device\virtural_device.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="data.c" />
@@ -179,6 +229,48 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="universal_fw_sdk\convertion_libs\LdpcEcc.cpp" />
+    <ClCompile Include="universal_fw_sdk\convertion_libs\PsConversion.cpp" />
+    <ClCompile Include="universal_fw_sdk\IDPageAndCP_Hex_SSD.cpp" />
+    <ClCompile Include="universal_fw_sdk\myQtSocket.cpp" />
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5012_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5013_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5016_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5019_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\SATASCSI3111_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\UFWST2Sql.cpp" />
+    <ClCompile Include="universal_fw_sdk\ufw\stdafx.cpp" />
+    <ClCompile Include="universal_fw_sdk\ufw\ufw_main.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\MemManager.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\MyFlashInfo.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\NetSCSICmd.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\NewSQLCmd.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYX3D.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYXD2.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYXD3.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IM3D.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IMD2.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IMD3.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSB3D.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSBD2.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSBD3.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTC3D.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTCD2.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTCD3.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWFlashCmd.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWInterface.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWLoger.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWSCSICmd.cpp" />
+    <ClCompile Include="universal_fw_sdk\universal_interface\USBSCSICmd.cpp" />
+    <ClCompile Include="universal_fw_sdk\USBSCSI5017_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\USBSCSI5017_UART.cpp" />
+    <ClCompile Include="universal_fw_sdk\USBSCSICmd_ST.cpp" />
+    <ClCompile Include="universal_fw_sdk\utils\CheckSSDBin.cpp" />
+    <ClCompile Include="universal_fw_sdk\utils\MicronInfo.cpp" />
+    <ClCompile Include="universal_fw_sdk\virtual_device\virtural_device.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="universal_fw_sdk\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

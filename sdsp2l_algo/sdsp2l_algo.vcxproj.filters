@@ -13,6 +13,42 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk">
+      <UniqueIdentifier>{8031ee1c-5c5e-4de9-b2db-8b6495f22cb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk">
+      <UniqueIdentifier>{939970ac-79b6-4a1c-b645-45129629e6c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk\ufw">
+      <UniqueIdentifier>{61c78eeb-bc8e-4923-9474-a9b1a647aef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk\universal_interface">
+      <UniqueIdentifier>{7ded4433-8697-40df-8a4d-b65eac357fd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk\utils">
+      <UniqueIdentifier>{42066e8f-7bed-4ca8-bdf9-94c5c91a6386}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk\convertion_libs">
+      <UniqueIdentifier>{94316a33-4502-4acf-baad-1ec0de5c3dfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk\convertion_libs">
+      <UniqueIdentifier>{a64cbce4-7b07-4845-8535-020d924b28d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk\ufw">
+      <UniqueIdentifier>{ed58dac5-f7d4-47b7-a706-84eb9e2d9f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk\universal_interface">
+      <UniqueIdentifier>{b5a4e735-15e1-4a2d-b70b-135535a51543}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk\utils">
+      <UniqueIdentifier>{15210e7f-872f-4d1d-ba40-cc3364f73bc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\universal_fw_sdk\virtual_device">
+      <UniqueIdentifier>{46ccd0bc-b51c-4290-995e-d46d83f794bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="來源檔案\universal_fw_sdk\virtual_device">
+      <UniqueIdentifier>{e4b7f049-aec1-40d6-b94d-a7822fe58ec0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -29,6 +65,126 @@
     </ClInclude>
     <ClInclude Include="p2l.h">
       <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\dconfig.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\utils\CheckSSDBin.h">
+      <Filter>來源檔案</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\myQtSocket.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\utils\MicronInfo.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5012_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5013_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5016_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\PCIESCSI5019_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\SATASCSI3111_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\U3Def.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\usb100.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\usbioctl.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\usbiodef.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\USBSCSI5017_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\USBSCSI5017_UART.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\USBSCSICmd_ST.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\convertion_libs\LdpcEcc.h">
+      <Filter>標頭檔\universal_fw_sdk\convertion_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\convertion_libs\PsConversion.h">
+      <Filter>標頭檔\universal_fw_sdk\convertion_libs</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\spti.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\stdafx.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\MemManager.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\NetSCSICmd.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\NewSQLCmd.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\MyFlashInfo.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvme.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvmeIoctl.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\nvmeReg.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\ParamStruct.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWFlashCmd.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWLoger.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWInterface.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\UFWSCSICmd.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\USBSCSICmd.h">
+      <Filter>標頭檔\universal_fw_sdk\universal_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\ufw\ufw_main.h">
+      <Filter>標頭檔\universal_fw_sdk\ufw</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\universal_interface\targetver.h">
+      <Filter>標頭檔\universal_fw_sdk\ufw</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\ufw\stdafx.h">
+      <Filter>標頭檔\universal_fw_sdk\ufw</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\IDPageAndCP_Hex_SSD.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\common_struct.h">
+      <Filter>標頭檔\universal_fw_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\ufw\ERROR_CODE.h">
+      <Filter>標頭檔\universal_fw_sdk\ufw</Filter>
+    </ClInclude>
+    <ClInclude Include="universal_fw_sdk\virtual_device\virtural_device.h">
+      <Filter>標頭檔\universal_fw_sdk\virtual_device</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -47,5 +203,125 @@
     <ClCompile Include="p2l.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="universal_fw_sdk\myQtSocket.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5012_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5013_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5016_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\PCIESCSI5019_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\SATASCSI3111_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\UFWST2Sql.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\USBSCSI5017_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\USBSCSI5017_UART.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\USBSCSICmd_ST.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\utils\CheckSSDBin.cpp">
+      <Filter>來源檔案\universal_fw_sdk\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\utils\MicronInfo.cpp">
+      <Filter>來源檔案\universal_fw_sdk\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\convertion_libs\LdpcEcc.cpp">
+      <Filter>來源檔案\universal_fw_sdk\convertion_libs</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\convertion_libs\PsConversion.cpp">
+      <Filter>來源檔案\universal_fw_sdk\convertion_libs</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\MemManager.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\MyFlashInfo.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\NetSCSICmd.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\NewSQLCmd.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYX3D.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYXD2.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_HYXD3.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IM3D.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IMD2.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_IMD3.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSB3D.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSBD2.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_TSBD3.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTC3D.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTCD2.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\SQL_YMTCD3.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWFlashCmd.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\ufw\ufw_main.cpp">
+      <Filter>來源檔案\universal_fw_sdk\ufw</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\USBSCSICmd.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWSCSICmd.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWLoger.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\universal_interface\UFWInterface.cpp">
+      <Filter>來源檔案\universal_fw_sdk\universal_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\IDPageAndCP_Hex_SSD.cpp">
+      <Filter>來源檔案\universal_fw_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\ufw\stdafx.cpp">
+      <Filter>來源檔案\universal_fw_sdk\ufw</Filter>
+    </ClCompile>
+    <ClCompile Include="universal_fw_sdk\virtual_device\virtural_device.cpp">
+      <Filter>來源檔案\universal_fw_sdk\virtual_device</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="universal_fw_sdk\README.md" />
   </ItemGroup>
 </Project>

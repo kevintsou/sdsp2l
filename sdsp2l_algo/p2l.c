@@ -18,12 +18,6 @@ t_dev_mgr dev_mgr;
 t_p2l_mgr p2l_mgr;
 t_lbn_mgr lbn_mgr;
 
-enum {
-    E_CMD_READ = 0,
-    E_CMD_WRITE,
-    E_CMD_ERASE
-};
-
 // get flash info
 // pAddr : CH/CE/BLK/PLANE/PAGE
 #define D_GET_CH_ADDR(x)        ((x >> dev_mgr.chSftCnt) & (dev_mgr.chCnt - 1))
@@ -33,7 +27,7 @@ enum {
 
 #define D_CHK_P2L_BITMAP(x)     (pP2lBitmap[(x/p2l_mgr.entryPerPage) / 32] & (1 << ((x/p2l_mgr.entryPerPage) % 32)))
 
-
+//
 // function declaration
 int iCopyP2lPageToDram(int pAddr);
 
@@ -405,6 +399,11 @@ int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt
     }
 
     p2l_mgr.tableSize = bufSize;
+
+    file_mgr.blk_lbn_per_plane_rd = 0;
+    file_mgr.blk_lbn_per_plane_wr = 0;
+    file_mgr.fd_write = -1;
+
     return 0;
 }
 
@@ -431,7 +430,7 @@ int iChkFlashAddr(int ch, int blk, int plane, int page) {
 /*
     Handle flash command here
 */
-int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayload){
+int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int* pPayload){
     int lbn = 0;
     
     if (iChkFlashAddr(ch, blk, plane, page)) {
@@ -456,7 +455,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
                 lbn = iAllocPageLbn(pAddr);
             }
         }
-        iWritePageData(lbn, &pAddr); // use lbn as the data write in to storage for comparing 
+        iWritePageData(lbn, pPayload, page, plane); // use lbn as the data write in to storage for comparing 
         iUpdateDataLbn(pAddr, lbn);
         break;
 
@@ -467,7 +466,7 @@ int iFlashCmdHandler(int cmd, int ch, int blk, int plane, int page, int *pPayloa
             return lbn;
         }
 
-        iReadPageData(lbn, pPayload);
+        iReadPageData(lbn, pPayload, page, plane);
 
         // debug code
         if (*pPayload != pAddr) {

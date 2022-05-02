@@ -9,6 +9,12 @@ extern "C" {
 	#define D_MAX_PLANE_CNT	8
 	#define D_MAX_PAGE_CNT 4096
 
+	enum {
+		E_CMD_READ = 0,
+		E_CMD_WRITE,
+		E_CMD_ERASE
+	};
+
 	typedef struct s_p2l_mgr {
 		int hitCnt;
 		int chkCnt;
@@ -57,9 +63,17 @@ extern "C" {
 		int *pChAllocLbn[D_MAX_CH_CNT];   // current allocated lbn for the write cmd for each channel
 	}t_lbn_mgr;
 
+	typedef struct s_file_mgr {
+		int fd_write;
+		int fd_read;
+		int blk_lbn_per_plane_rd;
+		int blk_lbn_per_plane_wr;
+	}t_file_mgr;
+
 	extern t_p2l_mgr p2l_mgr;
 	extern t_lbn_mgr lbn_mgr;
 	extern t_dev_mgr dev_mgr;
+	extern t_file_mgr file_mgr;
 
 	extern int iSwapP2lPage(int pAddr);
 	extern int iInitDevConfig(int devCap, int ddrSize, int chCnt, int planeCnt, int pageCnt, int* bufPtr);

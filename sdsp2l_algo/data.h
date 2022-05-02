@@ -6,8 +6,8 @@ extern "C" {
 #include "p2l.h"
 
 
-extern int iWritePageData(int lba, int *pPayload);
-extern int iReadPageData(int lba, int *pPayload);
+extern int iWritePageData(int lba, int* pPayload, int page_num, int plane_num);
+extern int iReadPageData(int lba, int* pPayload, int page_num, int plane_num);
 extern int* pDataPayload;	                
 extern int* pBlkErCntTbl[D_MAX_CH_CNT];					// erase count table with slc mode bit
 extern int* pRdCntTbl[D_MAX_CH_CNT];						// die block read count table
