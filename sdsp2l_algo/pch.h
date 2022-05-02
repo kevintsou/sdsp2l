@@ -12,6 +12,10 @@ extern "C" {
 // 請於此新增您要先行編譯的標頭
 #include "framework.h"
 
+#define U32	unsigned int
+#define U16 unsigned short
+#define U8	unsigned char
+
 #ifdef __cplusplus
 }
 #endif
