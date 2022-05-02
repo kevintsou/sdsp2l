@@ -173,6 +173,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="data.h" />
+    <ClInclude Include="flashCmdParse.h" />
+    <ClInclude Include="flashCmdSet.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="p2l.h" />
@@ -221,6 +223,8 @@
   <ItemGroup>
     <ClCompile Include="data.c" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="flashCmdParse.cpp" />
+    <ClCompile Include="flashCmdSet.cpp" />
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="p2l.c" />
     <ClCompile Include="pch.cpp">

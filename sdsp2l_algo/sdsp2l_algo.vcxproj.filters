@@ -186,6 +186,12 @@
     <ClInclude Include="universal_fw_sdk\virtual_device\virtural_device.h">
       <Filter>標頭檔\universal_fw_sdk\virtual_device</Filter>
     </ClInclude>
+    <ClInclude Include="flashCmdParse.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="flashCmdSet.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -319,6 +325,12 @@
     </ClCompile>
     <ClCompile Include="universal_fw_sdk\virtual_device\virtural_device.cpp">
       <Filter>來源檔案\universal_fw_sdk\virtual_device</Filter>
+    </ClCompile>
+    <ClCompile Include="flashCmdParse.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="flashCmdSet.cpp">
+      <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
