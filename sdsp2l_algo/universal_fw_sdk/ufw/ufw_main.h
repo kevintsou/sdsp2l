@@ -15,7 +15,7 @@
 
 extern "C" {
 
-
+	PHISON_TEST_PATTERN_API int iGetPcieBridgeDrive();
 	PHISON_TEST_PATTERN_API int InitPhyDrive(unsigned char PhyDrive);
 	PHISON_TEST_PATTERN_API int InitialFlash(int PhyDrv);
 	PHISON_TEST_PATTERN_API int GetFlashID(unsigned char* BufOut);

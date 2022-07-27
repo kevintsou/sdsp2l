@@ -128,6 +128,18 @@ PHISON_TEST_PATTERN_API void SetTempLogFile(char* LogFileName, int FileNameLen) 
 	memcpy(TempLogFile, LogFileName, FileNameLen);
 }
 
+PHISON_TEST_PATTERN_API int iGetPcieBridgeDrive(){
+	unsigned char InqBuf[528] = { 0 };
+
+	for (int idx = 0; idx < 10; idx++) {
+		UFWSCSICmd::_static_Inquiry(idx, InqBuf, true);
+		if (memcmp((char*)&InqBuf[0x08], "Bridge  PCIe", 12) == 0) {
+			return idx;
+		}
+	}
+	return -1;
+}
+
 PHISON_TEST_PATTERN_API int InitPhyDrive(unsigned char PhyDrive) {
 	unsigned char InqBuf[528] = { 0 };
 	unsigned char readBuf[512] = { 0 };
